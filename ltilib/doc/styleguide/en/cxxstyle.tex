@@ -1,0 +1,783 @@
+\newcommand{\staticcast}{\code{static\_cast}}
+
+\chapter{C++ Programming Style Guide}
+
+The Programming Style Guide provides several necessary rules to keep a clean
+and consistent development environment.  Through this rules it is easier for a
+developer to find his way in the code, even if he is not the original author.
+
+The main goal of the \ltilib\ is to provide a system independent library,
+which follows as much as possible the ANSI standards.  The system should work
+on different \product{Unix}-Platforms and on \product{Windows}, but it is
+specially maintained for \product{Linux} and \product{WindowsNT} machines.  To
+achieve this, strict programming discipline is required.  System dependent
+``tricks'' are not allowed.
+
+In those cases where is not possible to write system independent code (for
+example, due to direct hardware access), the platform dependent parts must be
+isolated in the smallest possible units.  An access class have to be
+specified, which provides access to all special supported operations.  No
+direct platform dependent access is allowed.
+
+\section{Organisation of the data}
+
+\subsection{Version control}
+
+\index{version control|see{CVS}} All code files will be administrated using a
+\inIndex{CVS}-database.  The repository will be on the CVS-Server.  A few
+hints to use CVS are available.  There are many graphic front-ends to simplify
+the use of this version control system, like \product{WinCVS} for
+\product{Windows} (\url{http://www.wincvs.org/}) or \product{Cervisia} for
+\product{Linux/KDE} (\url{http://cervisia.sourceforge.net/}).
+
+Each developer should not forget to comment its changes when committing into
+the repository.  To avoid confusion, he/she should try to get only one copy of
+the \ltilib\ (for the CVS-Server there is no problem, but some developers have
+lose some work because they did changes somewhere else...).
+
+\subsection{\inIndex{File conventions}}
+
+\index{filenames|see{file conventions}}
+\begin{itemize}
+\item Header files have always the extention \code{.h}.
+\item Source files have always the extention \code{.cpp}.
+\item Different words in a file name are written together, and each word
+  (except the first one) must begin with an uppercase letter.  The first word
+  must be \code{lti}.  Examples: \code{ltiFunctor.h} \code{ltiLinearFilter.h}
+\item Files which contain implementation for inline or template methods or
+  functions must be clearly denoted with \code{\_template} or
+  \code{\_inline}.  For example \code{ltiMatrix\_template.h}
+  \index{\code{template}} (see also section \ref{ssec:templates}).
+\end{itemize}
+
+\section{Tools}
+
+\subsection{Debugging}
+
+Search your \emph{bugs} with a \inIndex{Debugger}.  On \product{Windows NT}
+you can use the \visualc-Debugger.  On \product{Linux} there are many
+front-ends for the GNU-Debugger gdb, like \product{xxgdb}, \product{kdbg} and
+\product{ddd}.  A class must work without problems before it is integrated in
+the rest of the \ltilib.  To test your new functors, you can use the
+\code{tester} project provided with the library.
+
+Other commercial products like \product{Purify} can help searching for memory
+problems like memory leaks or outer-bounds access of arrays.
+
+If a program crashes, it usually helps to catch the \code{lti::exception}s and
+ask their content with the method \code{what()}) (see also section
+\ref{sssec:exception}).  It also helps to check if the called \code{apply()}
+or other functor methods return \code{false}, and in that case the cause of
+the problem can be checked with the \code{getStatusString()} method.
+
+\subsection{Optimization}
+
+Try to implement efficient code, but in a way that it remains
+maintainable.  You can use \product{gprof}, \product{valgrind} or the
+\visualc\ profilers to detect the critical parts of your code, which
+may require special attention by optimization.
+
+\section{General programming conventions}
+
+\subsection{Preamble}
+
+Each violation to the programming conventions must be documented.  It is not
+always possible to respect all conventions.  There are even cases where they
+are contradictory and following one will violate another.  Each case has to
+be studied separately to decide which solution makes more sense.  Discuss
+these cases with other \ltilib\ developers.
+
+\subsection{Name conventions}
+
+The names of classes, methods, functions and variables must always make sense.
+They all must be in English.  Comments must be also in English.  These way,
+your code can be understand all around the world.
+
+\section{C++-Programming}
+
+C++ was chosen as the main language for the \ltilib\ because it is possible to
+efficiently implement time and memory intensive algorithms (which are common
+in computer vision) without sacrificing code maintainability and using modern
+object oriented approaches.  It is also important to know where to look up for
+information.  There are two helpful books \index{C++ Books}: \cite{primer} is
+a very good introductory book for C++ and \cite{stroustrup}, in which almost
+everything about C++ can be found, even if it is sometimes difficult to find.
+
+\subsection{File organization}
+
+\newcommand{\thelog}{Id}
+
+\begin{itemize}
+\item each file with source code begins with a comment including information
+  about the file, like licence conditions, filename, authors, creation date,
+  etc.  If a special comment is present (see \code{\$\thelog} in the next
+  example), \cvs\ automatically enters some information in the file history:
+
+{\small
+\begin{alltt}
+/*--------------------------------------------------------------
+ * project ....: LTI Digital Image/Signal Processing Library
+ * file .......: ltiThread.h
+ * authors ....: Thomas Rusert
+ * organization: LTI, RWTH Aachen
+ * creation ...: 03.11.99
+ * revisions ..: $\thelog: ltiThread.h,v 1.6 2003/02/17 07:17:01 author Exp $
+ */
+\end{alltt}
+}
+
+\item you should avoid multiple inclusion of header files:
+  \index{\code{include}}
+\begin{verbatim}
+#ifndef HEADER_FILE_NAME_H
+#define HEADER_FILE_NAME_H
+...
+#endif
+\end{verbatim}
+
+\item each class definition required in other header or implementation files,
+  must have its own header file.
+\item header files of the \ltilib\ must be included with
+  \verb+#include "filename"+, system files with
+  \verb+#include <filename>+.
+\item cyclical \verb+#include+s have to be avoided.
+\item each function has to show a comment documenting the interface and the
+  functionality of the function or method.  The comment format must follow the
+  Doxygen style.
+\end{itemize}
+
+\subsection{\inIndex{Name conventions}}
+All \ltilib\ declarations must be done within the namespace
+\index{\code{namespace}} \code{lti}, except those members which extend other
+libraries (like \stl (STL)).
+
+\begin{itemize}
+\item names of data types, structs, classes, typedefs, enums, functions and
+  methods begin with a lowercase letter.  Only the enum constants and the
+  template parameters begin with an uppercase letter.\index{name!method}
+  \index{name!class} \index{type definition} \index{enum} \index{name!function}
+  \index{struct}
+\item names with more than one word are written without separators, and each
+  word (except the first one) must be written in uppercase.  For example
+  \code{linearEquationSystemSolutionMethod}.  The only exception are the
+  type names used in template classes to designate different properties of
+  template parameters.  This can be done to keep some concordance with
+  the STL.  For example in matrix<T>, the type of T can be accessed through
+  the \code{value\_type} type.  In case of doubt, prefer the LTI-Lib standard 
+  (thisWay instead of this\_way).  In other words, underscores should only
+  be found a very few times in template classes.
+\item names must not begin with an \inIndex{Underscore} (\code{\_}).
+\item use names that makes sense (not \code{mIn} for \code{maxIndex})
+\item use C++ comments \code{//}.  Comments used for documentation
+  generation with \product{Doxygen}, must follow the Doxygen conventions, \ie\
+  begin with \verb+/**+, end with \verb+*/+.  In documentation comments with
+  multiple lines, each line must begin with '\code{*}'.  See also section
+  \ref{sec:doku}.
+\item names must sufficiently differ.  Differences in lowercase or
+  uppercase letters only lead usually to confusion.
+\end{itemize}
+
+\subsection{Class declaration and definition}
+
+\subsubsection{Visibility sections}
+\label{sssec:sichtbarkeit}
+\begin{itemize}
+\item The order for the visibility sections in class definitions must be:
+\begin{enumerate}
+\item \code{public}
+\item \code{protected}
+\item \code{private}
+\end{enumerate}
+\item \code{friend} declarations are not allowed!  The only valid exception is
+  if a class needs access to protected attributes of enclosed classes (like
+  iterators).  Otherwise the class design must be revised.
+\item methods should not be defined in the class declarations, \ie\ in the
+  header file there should not be any code implementation.  Template and inline
+  functions should be implemented in \code{\_inline.h}
+  bzw. \code{\_template.h} files, which are appended using \code{\#include}.
+  Due to a bug of \visualc (version 6.0), the implementation of enclosed
+  classes of a template class or template methods must be done directly in the
+  class declaration.  This is the only accepted exception until now.
+  (see also section \ref{ssec:templates})
+\end{itemize}
+
+\subsubsection{Methods and global functions}
+\begin{itemize}
+\item global functions are not allowed (except for general tools like minimum,
+  maximum or general mathematical functions like sin(), cos(), tan(), etc.)
+\item a method that does not change the state of an object must be declared as
+  \code{const}.  These are for example methods to access the value of some
+  protected attributes.
+\item classes with attributes must define a \inIndex{copy-constructor} and a
+  copy member.  These receive as parameter a \code{const} reference
+  to an object of the same type.  The documentation must specify, if these
+  methods do a deep copy or a shallow copy (\ie\ if the class contains
+  pointers, if the whole pointed data are copied, or only the pointers.)
+  In the \ltilib\ almost every copy method and copy constructor do
+  a deep copy.
+\item classes that allocate data with \code{new} must define the operator `=',
+  which also receives a const reference to an object of the same type.
+\item methods and functions which do not change the contents of the
+  parameters, must declare them as \code{const}.
+\item classes with virtual functions and own attributes must declare the
+  virtual method \code{clone()}, which have exactly the same interface than
+  the \code{clone()} method of the parent class.  These method looks as
+  follows:
+\begin{verbatim}
+rootClass* Foo::clone() const {
+  return new Foo(*this);
+}
+\end{verbatim}
+\item classes with virtual methods must have a virtual destructor.
+\item a public method must not return references or pointers to local
+  variables, even if these variable are declared \code{static}.  The reason
+  for this restriction is that in multi-threaded programs this can cause
+  crashes of unpredictable behaviours if parallel accesses takes place.
+\item a public method must not return references or pointers to protected
+  attributes, except if the returned values are declared \code{const}.
+\item variable argument lists (...) in function definitions are not allowed,
+  due to the lack of type checking possibilities.  You can overload methods
+  to provide the desired functionality.
+\item the names of the \inIndex{arguments} must be the same in the declaration
+  and definition of functions and methods.  The names of the arguments must
+  be self explanatory.
+\item the returned value of a function or member must be given explicitely.
+\end{itemize}
+
+\subsubsection{Constants and variables}
+
+\begin{itemize}
+\item Declare constant values with \code{const} or \code{enum} instead of
+\verb+#define+.
+\item Do not use ``magic numbers'' in your code (\code{int value = 0x42}).
+\item Declare your variables in the smallest possible scope (if this does not
+  affect considerably the efficiency of your program!).
+\item Initialize your variables before their first use (otherwise you will get
+  megabytes of warnings from tools like \product{Purify} without any logical
+  reason).
+\item Never compare floating point types for equality with \code{==},
+  this is also for comparing to zero, like \code{==0}. Instead use the
+  functions \code{closeTo()} and \code{closeToZero()}, respectively,
+  which compare the difference/value to a small number.
+\item Due to the fact that pointer operations are always one of the most usual
+  error sources, try to use references instead.  If you allocate some memory,
+  check your code for memory leaks.
+\end{itemize}
+
+\subsection{Type casts}
+
+\begin{itemize}
+\item \inIndex{Type casts} in C-style are not allowed!(new=(NewType)old).
+  C++-Casts must follow following conditions:
+\begin{itemize}
+\item with polymorphic classes, it can be necessary to cast a static type into
+  a dynamic one.  This can be achieved using
+  \verb+dynamic_cast+\index{\code{dynamic\_cast}}.  This way type checking
+  will take place at compilation time and at run time, to ensure that the used
+  types are compatible:
+\begin{verbatim}
+class A {
+};
+
+class B: public A {
+};
+
+class C {
+};
+
+A a1,*a2,*a3;
+B b1,*b2;
+C *c2;
+a2=&b1;                   // a2 has dynamic type B
+a3=&a1;                   // a3 has dynamic type A
+b2=dynamic_cast<B*>(&a2); // Ok, notNull(b2)
+c2=dynamic_cast<C*>(a2);  // Error at compile type:
+                          // Types not compatible
+b2=dynamic_cast<B*>(a3);  // b2 is Null!, because B is
+                          // not the type of a3
+\end{verbatim}
+\item if you cannot avoid it (for example using some system functions) you can
+  replace an old C-case with
+\begin{verbatim}
+new=reinterpret_cast<NewType>(old)
+\end{verbatim}
+This is though one of the most dangerous error sources. The use of the C++
+cast emphasises when reading code, that the real type of a variable is just
+being ignored.
+
+C cast are not allowed due to the fact that they are not type secure, and the
+\ltilib\ follows a strong type security philosophy.
+
+\item the secure type conversion between static types, which cannot be
+  implicitly casted, can be done in C++ with \code{static\_cast}.  The
+  compiler can decide if a type conversion is allowed or not.  For example:
+\begin{verbatim}
+ float f;
+ double d;
+
+ d = f;                    // valid
+ f = d;                    // not valid
+ f = static_cast<float>(d);// valid
+\end{verbatim}
+
+\staticcast is also used in the \ltilib\ to solve conflicts between signed and
+unsigned types.  For example:
+
+\begin{verbatim}
+  // compare the sizes of an lti::vector and a
+  //  std::vector
+  lti::vector ltivector(5);
+  std::vector stdvector(6);
+
+  if (ltivector.size() ==
+      static_cast<int>(stdvector.size())) {
+  ...
+  }
+\end{verbatim}
+
+or if this comparison is not in a time critical section of your code, this
+slower version can be used:
+\begin{verbatim}
+  // compare the sizes of an lti::vector and a
+  // std::vector
+  lti::vector ltivector(5);
+  std::vector stdvector(6);
+
+  // use the integer constructor to convert the
+  // unsigned type into a signed int
+  if (ltivector.size() == int(stdvector.size())) {
+  ...
+  }
+\end{verbatim}
+
+\item the last example shows the other C++ alternative to cast types using
+  constructors.  For example:
+\begin{verbatim}
+float f;
+int i;
+
+i=5;
+f = float(i);  // float constructor receives an
+               // int parameter
+\end{verbatim}
+\end{itemize}
+
+This possibility must be considered carefully, because it can be very slow depending on the used
+compiler.
+\item use 0 instead of NULL. To check pointers if they are 0 or not, use the
+  predicates \code{isNull} or \code{notNull}.
+\item Never ever use \verb+const_cast+.  This is confusing due to the
+  fact that something declared \code{const} must remain const, and
+  should not be changed by the code. Exceptions exist when calling
+  functions in other languages (e.g. LAPACK) that assure constness of
+  a pointer, but don't reflect that in the signature.
+\end{itemize}
+
+\subsection{Cases}
+
+\begin{itemize}
+\item each \code{case}-label must end with a \code{break}-statement.
+\item A \code{switch}-statement must have a \code{default}-option, which
+  handles the unknown cases, even if this cases does not exist.  This is just
+  a measure for prevention of future bugs.
+\item also the \code{default}-label must end with break.
+\end{itemize}
+
+\subsection{Heap}
+
+\begin{itemize}
+\item the C-library functions \code{malloc}, \code{realloc}, \code{free},
+  etc. should not be used.  Use \code{new} and \code{delete} instead.
+\item to free the memory of arrays use \code{delete[]}.
+\item after deallocating a memory block, set the pointer to 0.
+\item functions that allocate some memory must take care of freeing it at the
+  end.
+\item check always if a pointer is valid before you use it (except if you are
+  absolutely sure that it is valid). For example:
+\begin{verbatim}
+myPointer=comingFromSomewhereElse();
+if (notNull(myPointer)) {
+    doSomething(myPointer);
+} else {
+    throw lti::exception("Oooh, missing pointer");
+}
+\end{verbatim}
+\item due to the fact that pointers are the most common error sources, you
+  should try to work with references instead.  You should always check after
+  possible memory leaks, if you really need to use pointers.
+\end{itemize}
+
+\subsection{Text Formating}
+
+An appropriate text formating scheme alleviates the maintenance and further
+developing of existing code.  It is also helpful in order to keep the code
+overview.  Following rules have shown their usefulness in practice:
+
+\begin{itemize}
+\item Use a two-spaces indentation.  Almost all modern text editors allow you
+  to set the width of a tab, and if it should be replaced with spaces.  Please
+  use this options.  Your code should never contain tabs, because they may
+  seem to be all right for you, but for other users they will not.
+\item Function names, their return type and their parameters should be in the
+  same line:
+\begin{verbatim}
+void myFuncName(int param1, int param2);
+\end{verbatim}
+\item if the number of parameters is two high, and they do not fit in one
+  line, try to give one parameter per line:
+\begin{verbatim}
+void myFuncName(const int&                 paramArraySize,
+                const lti::vector<float>&  paramArray,
+                lti::class&                className);
+\end{verbatim}
+\item all control flow primitives (\code{if}, \code{else},
+\code{while}, \code{for}, \code{do}) must be followed by a complete block,
+even if they consist in just one line:
+\begin{verbatim}
+if (pValue == 0) {
+    executeFunction();
+}
+
+for (int members = 0; members[i] < maxMembers; members++) {
+    // loop stops, if maxMember value reached
+}
+\end{verbatim}
+\item the opening brace must stay exactly after the statement (and not at the
+  new line).  The closing brace at the end should be at the same indentation
+  level than the statement.
+\item in the declaration or definition of pointer variables or references, the
+  \verb+*+- or \verb+&+-operators must stay after the data type.  I.\,e.\
+  \code{char* p} instead of \code{char *p}.  The reason is that C++ is a strong
+  typed language, and the type of p is a pointer to \code{char}.  To declare
+  more than one pointer/reference use one line per variable, or define
+  previously a type with \code{typedef}.
+\item before and after \code{.}, \code{->} and \code{::} there should not be
+  any spaces.
+\item All methods and declarations should be printable in a DIN A4-Page (\ie\
+  less than 70 lines).  Lines should not be longer than 80 chars.  Source
+  files should not have more than 1000 lines.
+\item the priority for the application of operators should be explicitely
+  given using parenthesis, in those cases where it can be ambiguous.
+\end{itemize}
+
+Some helpful tips for coding, that can also be applied to C++ can be found in
+\cite{java}.
+
+\subsection{Portability}
+
+Many programming errors are noticed just when the code is compiled using
+another compiler or another operating system.  Following tips should help
+writing portable code:
+
+\begin{itemize}
+\item do not make any assumptions about the size of data types.  The
+  ANSI-Standard specify only:
+\begin{center}
+  \code{sizeof(char)} $\leq$ \code{sizeof(short)} $\leq$ \code{sizeof(int)}
+  $\leq$ \code{sizeof(long)}
+\end{center}
+\item Variables should never be declared as \inIndex{\code{unsigned}}, even if
+  their values never become negative.  Exception to this rule is when the
+  complete value range of an unsigned variable is required (for example the
+  coding of RGB$\alpha$-values in a 32-bit int variable).  In these cases the
+  \code{unsigned} must be explicitely given.  In those situations where
+  unsigned variables of other libraries (like \product{STL}) need to interact
+  with the \ltilib\, you should use the \staticcast-operator instead of the
+  C-Cast method in order make assignments or comparisons.
+\item a pointer does not have always the size of an integer \code{sizeof(int)}!
+\item type casts between \code{signed}/\code{unsigned} must be done
+  explicitely.
+\item do never make assumptions about the size or location of data in memory
+  (for example the number of bytes of a structure).
+\item the evaluation order of the operands in an expression should not be
+  assumed.  The only exceptions are boolean functions:  in \verb+a && b+ or
+  \verb+a || b+ \code{a} is evaluated first.  Depending on its value, \code{b}
+  is evaluated or not.
+\item do not replace arithmetical operation with shift operations (this should
+  be done by the compiler).  If you cannot avoid this, use comments to denote
+  the semantic of the shifts.
+\item avoid use of pointer arithmetic.
+\item be aware of the endianness when reading or writing bytes in files.
+(Big-/Little-Endian).
+\item do not ever use \product{MFC} special classes, like \code{CList},
+  \code{CString}, \code{CPtrList} (they are only available for \visualc).  Use
+  instead standard data structures of the Standard Template Library (\stl)
+  (\code{std::list}, \code{std::string}, etc.)%
+\footnote{Documentation for the \stl\ can be found in \cite{stl}.}
+\end{itemize}
+
+\subsection{\inIndex{Forbidden language features}}
+
+Following reserved words or language constructs are not allowed in the \ltilib.
+
+\begin{itemize}
+\item \verb+goto+
+\item Trigraphs
+\item functions without proper declaration
+\item variable argument lists
+\item \verb+friend+s (see also \ref{sssec:sichtbarkeit})
+\item Old C header files like $<$stdlib.h$>$, $<$math.h$>$, $<$stdlib.h$>$. 
+     Please note that for all this headers an equivalent C++ one exists:
+
+     \begin{tabular}{|l|l|}
+       \hline
+       C ({\bf don't} use) & C++ (ok) \\
+       \hline
+       $<$assert.h$>$ & $<$cassert$>$ \\
+       $<$ctype.h$>$ & $<$cctype$>$ \\
+       $<$errno.h$>$ & $<$cerrno$>$ \\
+       $<$float.h$>$ & $<$cfloat$>$ \\    
+       $<$limits.h$>$ & $<$climits$>$ \\
+       $<$locale.h$>$ & $<$clocale$>$ \\
+       $<$math.h$>$ & $<$cmath$>$ \\
+       $<$setjmp.h$>$ & $<$csetjmp$>$ \\
+       $<$signal.h$>$ & $<$csignal$>$ \\
+       $<$stdarg.h$>$ & $<$cstdarg$>$ \\
+       $<$stdio.h$>$ & $<$cstdio$>$ \\
+       $<$stdlib.h$>$ & $<$cstdlib$>$ \\
+       $<$string.h$>$ & $<$cstring$>$ \\
+       $<$time.h$>$ & $<$ctime$>$ \\
+       \hline
+     \end{tabular}
+     
+     You should avoid specially the use of old deprecated stream files like
+     $<$fstream.h$>$, $<$iostream.h$>$, etc.  The \ltilib\ use the standard
+     files (e.\,g.\ $<$fstream$>$ or $<$iostream$>$) combining them with the
+     old deprecated ones leads usually to unpredictible behaviour!
+\end{itemize}
+
+\subsection{Templates}
+\label{ssec:templates}
+\index{template}
+
+Templates are sort of komplex strong-typed macros.  With them you can write
+code for which the types of variables or function parameters are still
+unspecified.  When you use your template classes or functions you will
+explicitely give the type (or types) for the variables you left ``untyped''.
+Templates are extensively used for example in the \stl\ (STL).
+
+If you use templates, you should know that
+\begin{itemize}
+\item no C++ compiler has 100\% support for templates.
+\item templates behave sometimes like macros, with all known problems
+  (annoying compiling errors, lots of code duplication and replication).
+\end{itemize}
+
+They have however as advantage, that if properly used the code can be
+implemented in a very efficient manner.  Due to the speed requirements in
+image processing, templates are used extensively in the \ltilib.
+
+For an efficient and clean implementation of code using templates, the ANSI
+C++ standard specifies the statement \inIndex{\code{export}}
+\cite{stroustrup}.  \visualc and \product{GCC} do not support this feature.
+Do not forget this when creating new functors for the \ltilib.
+
+\subsection{Error handling}
+
+\product{C++} provides many possibilities to deal with errors.  In the
+\ltilib\ you must follow following conventions:
+
+\subsubsection{assert}
+
+Assertions are considered by the compiler in debug mode only.  They inform
+the programmer about critical errors in code, that should \emph{NEVER} happen,
+\eg\ outer bound access to matrices or other container classes.
+
+In release versions all \code{assert} statements are ignored.  If an error
+like the one mentioned before is not fixed, the program will crash without
+giving any information.  Please debug your code using the debug version.  In
+order to avoid crashes in bigger software systems that use the \ltilib, you
+should \emph{NEVER} report usual errors in \code{apply} methods using
+assertions.  For this task you should implement a defined behavior for the
+functor (see below).
+
+\subsubsection{exception}
+\label{sssec:exception}
+
+Exceptions can be used in those cases where multiple errors are possible (\eg\ during file access:
+file does not exist or invalid file format).  The constructor of the class \code{lti::exception}
+will expect a string with a short description of the problem.  You can of course inherit from this
+class if you think it is convenient.  The most common use for exceptions is to report hardware
+problems, which can require special treatment to recover, or where a specific state must be
+warranted, even when error occur.
+
+All functor classes in the \ltilib\ throw an \code{lti::exception} if the
+parameters are requested but not set, or when the parameter type is wrong.
+
+An example for the use of \code{exception}s:
+
+\begin{verbatim}
+// channels
+lti::channel inputChannel, outputChannel;
+// a convolution operator
+lti::convolution convolver;
+// initialize the convolution operator
+// ... user sets the parameters here
+// try to convolve
+try {
+  // try to convolve the inputChannel with a kernel
+  // given by the user
+  convolver.apply(inputChannel,outputChannel);
+} catch (lti::functor::invalidParametersException& exc) {
+  // some error occured with the parameters
+  std::cout << "Do not forget to set the proper parameters!"
+            << std::endl;
+  // recover from the error
+  outputChannel.clear();
+} catch (lti::exception& exc) {
+  // some unexpected error occured
+  std::cout << "Error in convolver: " << exc.what()
+            << std::endl;
+  // recover from the error
+  outputChannel.clear();
+}
+
+// don't know what to do with all other errors, they should be
+// catched by the enclosing scope
+}
+\end{verbatim}
+
+If you don't use the \code{try-catch} blocks, all thrown exceptions will
+arrive enclosing scope (the calling function).
+
+A nice introduction to exceptions can be found in \cite{stroustrup}.
+
+\subsubsection{Defined error behavior}
+
+This should be the error handling method of preference for all functor
+\code{apply}-methods.  If two images with different sizes are given to a
+functor which expects images with the same size, the functor should not crash
+or throw an exception.  It just needs to return \code{false} or an invalid
+result, that can be checked by the calling functions.
+
+For all those not critical error, which are usually caused by a wrong usage of
+functions and classes, please follow these rules:
+
+\begin{itemize}
+\item[On-Copy \code{apply}] The returned data objects should be reset (\eg\
+  with \code{clear()} for images, matrices and vectors) or should return an
+  invalid value (\eg\ the result of a distance computation, which should be
+  always positive, can be in case of error negative).  These special error
+  conditions must be documented.
+\item[On-Place \code{apply}] The input/output parameters should not be changed.
+\end{itemize}
+
+The \code{apply}-methods return a boolean with the value \code{true} if
+everything worked fine and \code{false} if a error occurred. Within the
+methods of the functor class you can use \code{setStatusString()} to report
+the cause of an error.  The user can check the returned boolean value if there
+was a problem and get \code{getStatusString()} to determine the cause of the
+problem.
+
+\section{Creating new functors}
+
+All functors in the \ltilib\ have a common framework.  The
+\product{PERL}-Script \code{ltiGenerator} (to be found in
+\code{ltilib/tools/perl/}) provides a simple way to create this class frame.
+You just need to fill out some fields in the text file
+\code{ltiTemplateValues.txt} and then call the script.
+
+The expected values in \code{ltiTemplateValues.txt} are:
+
+\begin{itemize}
+\item[\code{classname}] the name of the new class.
+\item[\code{parentclass}] the name of the class from which the new class will
+  inherit.
+\item[\code{author}] the author (or authors) of the class.
+\item[\code{date}] (Optional) creation date (if leaved empty, the current date
+  will be taken).
+\item[\code{includes}] (Optional) A comma separated list with all header files
+  required.
+\item[\code{filename}] (Optional) The name of the file where this class
+  should be found.  If left empty, the name will be automatically created from
+  the class name, following the naming conventions of the \ltilib.
+\item[\code{parameters}] The list of parameters.  Of course you can add later
+  new parameters manually. You just need to update the code in the parameters
+  constructor and in the methods \code{copy}, \code{read} and \code{write}.
+\item[\code{applytype}] The initial parameters types for the
+  \code{apply}-methods.
+\end{itemize}
+
+\section{Documentation}
+\label{sec:doku}
+
+\subsection{Documentation system}
+
+You can find the online-documentation at
+\begin{center}
+  \code{http://ltilib.sourceforge.net/doc/html/index.html}
+\end{center}
+This will always correspond to the latest released version.  It will be
+created using the comments in the header-files of each class and the file
+\code{ltiDocu.h} in \code{ltilib/doc/src/}.  The documentation system
+\product{Doxygen} is used for this task (for detailed information see
+\cite{doxygen}).
+
+Important is to notice that doxygen comments begin with \code{/**} and end
+with \code{*/}.\index{Doxygen}
+
+\begin{verbatim}
+/**
+ * This is how a comment should look like
+ *
+ * All doxygen commands start with \ or @ (e.g. \param).
+ * Use % to avoid, that the following word gets linked.
+ */
+\end{verbatim}
+
+\subsection{Documentation style}
+
+The documentation of all classes must be written in English.  It must contain
+a brief description, and a detailed explanation with all relevant information
+like references to literature with theory to the implemented
+algorithms.  All methods and attributes of the classes must also be
+documented.  For all attributes of the parameters-classes you have to give the
+used default values.
+
+Example:
+
+\begin{itemize}
+
+\item Classes
+\begin{verbatim}
+/**
+ * Computes the optical flow between two consecutive images
+ * according to Horn-Schunks gradient based method. ...
+ *
+ * Theory: "The Computation of Optical Flow", Beauchemin
+ * & Barron, ACM Computing Surveys, Vol.27 No. 3
+ * Algorithm: "Computer Vision", Klette, Schluens &
+ * Koschan, Springer, pp.190
+ */
+\end{verbatim}
+\item Methods
+\begin{verbatim}
+/**
+ * Computes the optical flow for the given sequence of images.
+ * @param theSeq The sequence of images, which must have at least two elements.
+ * @param mag magnitude of the optical flow
+ * @param arg angle of each optical flow vector.
+ * @return true if successful, false otherwise.
+ */
+ bool apply(const sequence<images>& theSeq,
+                  channel& mag,
+                  channel& arg) const;
+\end{verbatim}
+\item Attributes
+\begin{verbatim}
+/**
+ * Number of iterations. iterations = 1,2,... 
+ *
+ * Default value: 100
+ */
+ int iterations;
+\end{verbatim}
+\end{itemize}
+
+Of course you should also comment your source code, so that other programmers
+can work on it.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "DevelopersGuide"
+%%% End:

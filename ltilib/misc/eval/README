@@ -1,0 +1,12 @@
+This directory contains functors or data structures used in the
+evaluation of algorithms.  They are not part of the main library,
+since evaluation is a step you usually want "outside" the real
+applications.
+
+At this point this directory contains the lti::paretoFront functor and
+derived classes.
+
+Since wether the Makefile for Linux/GCC nor the Project files for
+Windows/VC++ consider this directory, you have to copy or link them to
+you working directory.  For example, for the Linux "tester" framework
+you can just link them to the linux/workbench directory.

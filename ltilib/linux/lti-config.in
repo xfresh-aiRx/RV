@@ -1,0 +1,127 @@
+#!/bin/bash
+
+prefix=@prefix@
+exec_prefix=${prefix}
+exec_prefix_set=no
+
+libdir=@libdir@/ltilib
+includedir=@includedir@/ltilib
+
+# Check for LAPACK
+lapack_libs=@LAPACK_LIBS@
+if test -n "$lapack_libs" ; then
+LIBS="@LAPACK_LIBS@ @BLAS_LIBS@ @F2C_LIBS@ @LIBS@"
+else
+LIBS="@LIBS@" 
+fi
+
+usage()
+{
+	cat <<EOF
+Usage: lti-config [OPTIONS] [LIBRARIES]
+Options:
+	[--prefix[=DIR]]
+	[--exec-prefix[=DIR]]
+	[--version]
+	[--libs]
+	[--cxxflags]
+Libraries:
+	nogtk
+	debug
+EOF
+	exit $1
+}
+
+if test $# -eq 0; then
+	usage 1 1>&2
+fi
+
+lib_gtk=@gtk_lib@
+postfix=
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --prefix=*)
+      prefix=$optarg
+      if test $exec_prefix_set = no ; then
+        exec_prefix=$optarg
+      fi
+      ;;
+    --prefix)
+      echo_prefix=yes
+      ;;
+    --exec-prefix=*)
+      exec_prefix=$optarg
+      exec_prefix_set=yes
+      ;;
+    --exec-prefix)
+      echo_exec_prefix=yes
+      ;;
+    --version)
+      echo @VERSION@
+      ;;
+    --cxxflags)
+      echo_cxxflags=yes
+      ;;
+    --libs)
+      echo_libs=yes
+      ;;
+    nogtk)
+      lib_gtk=no
+      ;;
+    debug)
+      debug_libs=yes
+      ;;
+    *)
+      usage 1 1>&2
+      ;;
+  esac
+  shift
+done
+
+if test "$echo_prefix" = "yes"; then
+	echo $prefix
+fi
+
+if test "$echo_exec_prefix" = "yes"; then
+	echo $exec_prefix
+fi
+
+if test "$echo_cxxflags" = "yes"; then
+      if test "$lib_gtk" = "yes"; then
+        gtkcxxflags=`gtk-config --cflags gthread`
+      else
+        gtkcxxflags=-D_REENTRANT
+      fi
+
+      if test "$debug_libs" =  "yes"; then
+        debugflags="-D_DEBUG"
+      else
+        debugflags="-DNDEBUG"
+      fi
+
+      echo "$gtkcxxflags -I${prefix}/include/ltilib -D_GNU_SOURCE @OSCXXOPTS@ $debugflags"
+fi
+
+if test "$echo_libs" = "yes"; then
+      if test "$lib_gtk" = "yes"; then
+        gtklibs=`gtk-config --libs gthread`
+        postfix=
+      else
+        gtklibs=-lpthread
+	postfix=nv
+      fi
+
+      if test "$debug_libs" =  "yes"; then
+        postfix=${postfix}d
+      else
+        postfix=${postfix}r
+      fi
+      echo $LIBS $gtklibs -L${libdir} -llti${postfix} 
+fi      
+

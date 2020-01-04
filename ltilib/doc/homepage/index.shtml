@@ -1,0 +1,298 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <title>LTI-Lib</title>
+  <link href="ltilib.css" rel="stylesheet" type="text/css" />
+ </head>
+ <body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+  <table border="0" cellspacing="0" cellpadding="0" width="100%">
+   <tr>
+    <td width="90"><a href="index.html"><img src="images/ltilib.png" width="261" height="150" border="0" alt="LTI-Lib" /></a></td>
+     <td background="images/top_bg.gif" align="right" width="100%">
+<!-- Begin latest release info -->
+<font color="#FFFFFF" face="Verdana, Arial, Helvetica" size="-1">
+latest version v1.9
+</font>
+<!-- End latest release info -->
+    </td>
+    <td background="images/top_bg.gif" align="right" width="51"><img src="images/transpixel.gif" width="51" height="1" border="0"
+    alt="" /></td>
+   </tr>
+  </table>
+  <table border="0" cellspacing="0" cellpadding="2" width="100%">
+   <tr>
+    <td width="51"><img src="images/transpixel.gif" width="51" height="1" border="0" alt="" /></td>
+    <td valign="top" width="100%">
+<font face="Verdana, Arial, Helvetica" size="-1">
+<!-- begin contents -->
+
+<!-- From Doxygen Documentation for LTI-Lib -->
+
+<p>
+<h2>Introduction</h2> 
+
+<p>The LTI-Lib is an object oriented library with algorithms and
+data structures frequently used in image processing and computer
+vision.  It has been developed at the Chair of Technical Computer
+Science (Lehrstuhl fuer Technische Informatik) LTI at the Aachen
+University of Technology, as part of many research projects in
+computer vision dealing with robotics, object recognition and sing
+language and gesture recognition.
+
+<p>The main goal of the LTI-Lib is to provide an <b>object oriented</b>
+library in C++, which simplifies the code sharing and maintenance, but
+still providing fast algorithms that can be used in real applications.</p>
+
+<p>
+It has been developed using 
+<a href="http://www.gnu.org/software/gcc/gcc.html">GCC</a> under
+<a href="http://www.linux.org">Linux</a>, and  
+<a href="http://msdn.microsoft.com/visualc/">Visual C++</a> under
+<a href="http://www.microsoft.com/ntworkstation/default.asp">Windows
+NT</a>.  We have not tested it under other platforms.
+</p>
+
+<p>Many classes encapsulate Windows/Linux functionality in order to
+simplify dealing with system or hardware specific code (for example
+classes for multi-threading and synchronization, time measurement and
+serial port access).</p>
+
+The rest of the more than 500 classes deal mainly with one of following
+fields:
+
+<h3>Linear algebra</h3>
+
+<p>Matrices, Vectors, Tensors, and functors to extract eigenvalues,
+eigenvectors, linear equations solutions, statistics, etc. are provided.</p>
+
+<h3>Classification and Clustering</h3>
+
+<p>Radial Basis Function classifiers, Support Vector Machines, 
+k-Means, Fuzzy C-Means, classification statistics are just some
+examples of what you can do with the LTI-Lib.</p>
+
+<h3>Image Processing</h3>
+
+<p>The most classes deal with image processing problems.  Different
+segmentation approaches, linear filters, wavelets, steerable filters,
+und much more are already available.</p>
+
+<h3>Visualization and Drawing Tools</h3>
+
+<p>The most difficult part when developing image processing algorithms
+in C++ is showing temporary images while debugging.  Due to the object
+oriented architecture of the LTI-Lib, you just need to create a viewer
+object and give it the image you need to show.  That's it.  An if you
+additionally need to draw some extra information on that image (some
+text, ellipses, boxes, lines or points) you can use one of the
+drawing objects.  This will help you to save lots of time!</p>
+
+<h2>Documentation</h2>
+
+<p>All code is documented using the great tool 
+<a href="http://www.doxygen.org">Doxygen</a>, and is available on-line
+<a href="../html/index.html">here</a>.</p>
+
+<p>There is also a <a href="http://ltilib.pdoerfler.com/wiki/">Wiki</a>
+for users and developers of the LTI-Lib.</p>
+
+<p>The LTI-Lib uses the <a href="http://sourceforge.net/tracker/?group_id=45767">trackers</a> to receive bug reports,
+feature and support requests and a wiki page to keep track of longer
+term <a href="http://ltilib.pdoerfler.com/wiki/Projects">projects</a>.</p>
+
+<h2>Requirements</h2>
+
+<p>
+For Windows NT you will need at least the MS Visual C++ 6.0 with
+Service Pack 5.0 or the MS Visual C++ .NET 2003 (Version .NET 2002
+is NOT supported).</p>
+
+<p>
+For Linux you will require at least GCC 2.95.3.</p>
+
+<p>
+For both platforms you will need
+<a href="http://www.perl.org/">PERL</a>, and if you want to use the 
+viewers (and we think you will!), you will also need to have installed
+the <a href="http://www.gtk.org/">GTK</a> libraries.  See also the
+<a href="../html/compilers.html">on-line documentation</a> for
+more information.
+
+<h2>LTI-Lib License</h2>
+
+<p>
+Copyright &copy; 1998-2005 by  
+<a href="http://www.techinfo.rwth-aachen.de/index_e.html">Chair of
+Technical Computer Science, RWTH-Aachen</a>. 
+</p>
+
+<p>
+The LTI-Lib is free software; permission to use, copy, modify, and
+distribute this software and its documentation under the terms of the
+GNU Lesser General Public License is hereby granted. No
+representations are made about the suitability of this software for
+any purpose. It is provided "as is" without express or implied
+warranty. See the
+<a href="http://www.gnu.org/copyleft/lesser.html#SEC1"> GNU Lesser General
+Public License</a> for more details.</p>
+
+<p>
+The LTI-Lib is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.</p>
+
+<h2>Projects using the LTI-Lib</h2>
+<p>For users who work with the LTI-Lib on Windows platforms might like to take a look
+   at <a href="http://www.techinfo.rwth-aachen.de/Software/Impresario">Impresario</a>.
+   This is a small Rapid Prototyping System which supports the development and evaluation
+   of simple image processing systems and incorporates the LTI-Lib into an extendable
+   graphical user interface.
+</p>
+<p>More <a href="projects.html">projects</a> which utilize the LTI-Lib are listed separately.
+</p>
+
+<h2>Acknowledgements</h2> 
+
+<p>Thanks go to all authors:</p>
+
+<!-- paste contents of misc/admin/Depelopers.txt here!!!! -->
+<p>
+Suat Akyol,
+Pablo Alvarado,
+Daniel Beier,
+Axel Berner,
+Florian Bley,
+Ulrich Canzler,
+Peter Doerfler,
+Thorsten Dick,
+Thomas Erger,
+Helmuth Euler,
+Holger Fillbrandt,
+Dorothee Finck,
+Birgit Gehrke,
+Peter Gerber,
+Claudia Goenner,
+Ingo Grothues,
+Xin Gu,
+Michael Haehnel,
+Arnd Hannemann,
+Christian Harte,
+Bastian Ibach,
+Torsten Kaemper,
+Thomas Krueger,
+Frederik Lange,
+Lars Libuda,
+Henning Luepschen,
+Peter Mathes,
+Alexandros Matsikis,
+Ralf Miunske,
+Bernd Mussmann,
+Jens Paustenbach,
+Norman Pfeil,
+Vlad Popovici,
+Gustavo Quiros,
+Markus Radermacher,
+Jens Rietzschel,
+Daniel Ruijters,
+Thomas Rusert,
+Volker Schmirgel,
+Stefan Syberichs,
+Guy Wafo Moudhe,
+Ruediger Weiler,
+Jochen Wickel ,
+Marco Wilka,
+Benjamin Winkler,
+Xinghan Yu,
+Marius Wolf,
+Joerg Zieren
+</p>
+
+<!-- end contents -->
+</font></td>
+    <td valign="top">
+<!-- Begin navbars -->
+<table border="0" cellspacing="0" cellpadding="0">
+ <tr>
+  <td width="7"><img src="images/navbar_tl_1.gif" width="7" height="11" border="0" alt="" /></td>
+  <td width="108" background="images/navbar_top_1.gif"><img src="images/transpixel.gif" width="1" height="11" border="0" alt="" /></td>
+  <td width="12"><img src="images/navbar_tr_1.gif" width="12" height="11" border="0" alt="" /></td>
+ </tr>
+ <tr>
+  <td background="images/navbar_left_1.gif"><img src="images/transpixel.gif" width="7" height="1" border="0" alt="" /></td>
+  <td bgcolor="#F2F2F2" valign="top" align="right" class="navbar1" nowrap="nowrap">
+   <font face="Verdana, Arial, Helvetica" size="-1">
+<!-- Begin first navbar -->
+    <a href="../html/index.html">On-Line Manual</a><br />
+    <a href="http://sourceforge.net/mail/?group_id=45767">Mailing Lists</a><br />
+    <a href="http://sourceforge.net/mailarchive/forum.php?forum_id=ltilib-users">Mail archive</a><br />
+    <a href="faq.html">FAQ</a><br />
+    <a href="https://sourceforge.net/projects/ltilib/">SorceForge Summary Page</a><br />
+    <a href="https://sourceforge.net/tracker/?group_id=45767&atid=444020">Todo / Wish List</a><br />
+<!-- End first navbar -->
+   </font>
+  </td>
+  <td background="images/navbar_right_1.gif"><img src="images/transpixel.gif" width="12" height="1" border="0" alt="" /></td>
+ </tr>
+ <tr>
+  <td><img src="images/navbar_bl_1.gif" width="7" height="9" border="0" alt="" /></td>
+  <td background="images/navbar_bottom_1.gif"><img src="images/transpixel.gif" width="1" height="9" border="0" alt="" /></td>
+  <td><img src="images/navbar_br_1.gif" width="12" height="9" border="0" alt="" /></td>
+ </tr>
+ <tr>
+  <td width="7"><img src="images/navbar_tl_2.gif" width="7" height="11" border="0" alt="" /></td>
+  <td width="108" background="images/navbar_top_2.gif"><img src="images/transpixel.gif" width="1" height="11" border="0" 
+  alt="" /></td>
+  <td width="12"><img src="images/navbar_tr_2.gif" width="12" height="11" border="0" alt="" /></td>
+ </tr>
+ <tr>
+  <td background="images/navbar_left_2.gif"><img src="images/transpixel.gif" width="7" height="1" border="0" alt="" /></td>
+  <td bgcolor="#DAE8F7" valign="top" align="right" class="navbar2" nowrap="nowrap">
+   <font face="Verdana, Arial, Helvetica" size="-1">
+<!-- Begin second navbar -->
+    <a href="http://sourceforge.net/cvs/?group_id=45767">CVS</a><br />
+    <a href="https://sourceforge.net/project/showfiles.php?group_id=45767">Download</a><br />
+    <a href="http://prdownloads.sourceforge.net/ltilib/DevelopersGuide.pdf?download">Developers' Guide</a><br />
+<!-- End second navbar -->
+   </font>
+  </td>
+  <td background="images/navbar_right_2.gif"><img src="images/transpixel.gif" width="12" height="1" border="0" alt="" /></td>
+ </tr>
+ <tr>
+  <td><img src="images/navbar_bl_2.gif" width="7" height="9" border="0" alt="" /></td>
+  <td background="images/navbar_bottom_2.gif"><img src="images/transpixel.gif" width="1" height="9" border="0" alt="" /></td>
+  <td><img src="images/navbar_br_2.gif" width="12" height="9" border="0" alt="" /></td>
+ </tr>
+</table>
+<!-- End navbars -->
+    </td>
+   </tr>
+  </table>
+  <br />
+
+  <table border="0" cellspacing="0" cellpadding="0" width="100%">
+   <tr>
+    <td width="150">
+    <a href="http://www.techinfo.rwth-aachen.de/index_e.html">
+    <img src="images/ltirwth.png" height="32" border="0" alt="LTI-RWTH"/></a>
+    </td>
+    <td align="center" width="100%">
+<!-- Begin counter -->
+<!--#exec cgi="/cgi-bin/counter.pl"-->
+<br />
+Last Modified:
+<!--#flastmod file="index.shtml"-->
+<br />
+<!-- End counter -->
+    </td>
+    <td align="right" width="150"> 
+    <a href="http://sourceforge.net"> 
+<!-- If SourceForge Page -->
+    <img src="http://sourceforge.net/sflogo.php?group_id=45767&amp;type=2"
+    width="125" height="37" border="0" alt="SourceForge Logo"></a>
+<!-- End SourceForge Page -->
+    </td>
+   </tr>
+   &nbsp;<br />
+  </table>
+ </body>
+</html>

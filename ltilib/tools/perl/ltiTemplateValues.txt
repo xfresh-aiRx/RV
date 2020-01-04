@@ -1,0 +1,74 @@
+// -----------------------------------------------------------------------
+//  General Information
+// -----------------------------------------------------------------------
+
+// name of the class.  It must begin with lowercase, and then every
+// word begins with uppercase.  For example filter, gaussianDistribution, etc.
+// Do NOT use '_' for separating words!!!
+
+classname = generalInterpolator
+
+// name of the parent class.  Normally this parent class is an
+// abstract class derived from lti::modifier.  Please look for a
+// better parent class as modifier!
+
+parentclass = scalarValuedInterpolation<T>
+
+// name of the author of the file
+
+author = Pablo Alvarado
+
+// creation date.  If left blank, todays date!
+
+date =
+
+// include files, separated with ','
+
+includes = ltiImage.h,ltiVector.h
+
+// name of the file, if this is left blank, it will be generated
+// automatically, with the lti<Classname>.h for a header lti<Classname>.cpp 
+// for the implementation file (or ltiClassname_template.h) if its a template!
+
+filename =
+
+// -----------------------------------------------------------------------
+//  The Parameters of the Functor
+// -----------------------------------------------------------------------
+
+// the parameters of the functor, in following syntax:
+//
+// <type> <name>; [//<copy method>]
+// 
+// if you don't specify any copy method, it will be assumed, that the
+// <type> understands the '=' operator, if you specify 'copy' it will
+// be assumed that <type> has a copy member
+
+parameters = {
+           int numSamplesPerInterval;
+           int neighborhoodSize;
+           eKernelType kernelType;
+}
+
+// -----------------------------------------------------------------------
+//  The Apply Methods of the Functor
+// -----------------------------------------------------------------------
+
+// a comma-separated list of types, with which the functor will operate
+// the usual types are: channel, channel8, ivector, fvector, vector<ubyte>
+// If you use ltiClusteringTemplate leave applytype blank.
+
+applytype = vector
+
+
+
+
+
+
+
+
+
+
+
+
+

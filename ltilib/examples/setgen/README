@@ -1,0 +1,4 @@
+This small tool takes an image (PNG, JPEG or BMP) and optionally two
+ranges and generates a two dimensional training set.
+
+Usage: 

@@ -1,0 +1,337 @@
+\chapter{Class Hierarchy}
+\label{chap:hierarchy}
+
+All Objects in the \ltilib\ are in the namespace \index{\code{namespace}}
+\inIndex{\code{lti}}.  The basis class in the \ltilib\ is \code{object}.
+
+The class\code{lti::mathObject} is the parent class for many aggregate
+classes, like vectors and matrices.  Most algorithms in the library operate on
+this kind of data.  \code{lti::functor} objects implement the algorithms.
+\code{lti::exception}-objects inherit from \code{std::exception}, which are
+thrown in case of critical errors.
+
+\begin{table}
+  \caption{Basic Types in the \ltilib}
+  \label{tab:generalTypes} %
+  \begin{center}
+    \begin{tabular}{|l|l|}
+      \hline
+      \code{byte}      & 8-bit Typ signed\\
+      \code{ubyte}     & 8-bit Typ unsigned\\
+      \code{int16}     & 16-bit Typ signed\\
+      \code{uint16}    & 16-bit Typ unsigned\\
+      \code{int32}     & 32-bit Typ signed\\
+      \code{uint32}    & 32-bit Typ unsigned\\
+      \code{point}     & 2D points with \code{lti::int32} coordinates\\
+      \code{rectangle} & Two 2D points (upper-left and bottom-right)\\
+      \code{rgbPixel}  & a 32-bit long RGB pixel representation\\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The basic types in the \ltilib\ are listed in Table \ref{tab:generalTypes}
+(all of them defined in namespace \code{lti}).
+
+More details on these and other classes can be found in the Doxygen
+documentation of the library or in \url{http://ltilib.sourceforge.net}.
+Next sections provide an short overview of the documentation there%  
+\footnote{%
+  Please note that this section is not at all up-to-date.  Only the online
+  documentation contains the actual functors, which are \emph{many} more that
+  the ones listed here.  The goal of these paragraphs is only to provide a
+  fast overview of the main topic of the library.
+}%
+.
+
+\section{Introduction}\label{intro}
+
+The \ltilib\ is a collection of algorithms and data structures frequently used
+in the image processing.
+
+These pages will give some informations about the usage of the \ltilib\.  For
+details about the usage of each class follow the link "More..." at the header
+of each class documentation.
+
+The data structures used in the \ltilib\ are described in the section
+Data Structures (\ref{dataStruct}).  All the algorithms implemented in
+the \ltilib\ are Functors (\ref{functors}).
+
+The algorithms can be organized in the following groups:
+\begin{itemize}
+\item
+Mathematical Operations (\ref{mathOp})\par
+\item
+Filters (\ref{filters})\par
+\item
+Transforms and Modifiers (\ref{transform})\par
+\item
+Other image processing functors (\ref{imgproc})\par
+\item
+Input and Output (\ref{inout})\par
+\end{itemize}
+
+\section{Data Structures}\label{dataStruct}
+
+
+The are six groups of data structures:\begin{itemize}
+\item
+Basic Types (\ref{basictypes})\par
+\item
+Vector, Matrix and Image Types (\ref{img})\par
+\item
+Image Regions and Contours (\ref{regions})\par
+\item
+Sequences (\ref{sequences})\par
+\item
+Pyramids (\ref{pyramids})\par
+\item
+Trees (\ref{trees})\par
+\item
+Histograms (\ref{histograms})\par
+\end{itemize}
+\subsection{Basic Types}\label{basictypes}
+
+
+The basis types allow the representation of usual data structures like:
+
+\begin{itemize}
+\item
+Color pixels: \code{lti::rgbPixel}, \code{lti::trgbPixel}$<$T$>$\item
+Points in a 2D space: \code{lti::point}, \code{lti::tpoint}$<$T$>$\item
+Rectangles: \code{lti::rectangle}, \code{lti::trectangle}$<$T$>$\end{itemize}
+
+\subsection{Vector, Matrix and Image Types}\label{img}
+
+The \ltilib\ Algorithms manipulate two types of containers: one-dimensional
+(\code{lti::vector}) or two dimensional containers (\code{lti::matrix}).
+
+Both of them are implemented as C++ templates. This allow an efficient reuse of the code with different types of data.
+
+A vector of integers can be created with the following code:
+
+\footnotesize\begin{verbatim}  lti::vector<int> aVct(5,0); // this creates a vector with 5 elements
+                              // and initialize them with 0\end{verbatim}\normalsize
+
+
+A 3x4 matrix of double (3 rows and 4 columns) will be created with
+
+\footnotesize\begin{verbatim}  lti::matrix<double> aMat(3,4,1.0); // creates a 3x4 matrix of double
+                                     // and initialized elements with 1.0\end{verbatim}\normalsize
+
+
+There are some "alias" for frequently used matrix types:
+
+We have for example the type \code{lti::image}, which is defined as a matrix
+of color pixels (\code{lti::rgbPixel}).
+
+A channel is in this library an image with monochromatic information. There are two types of channels: 8-bit channels with pixel  values between 0 and 255 (\code{lti::channel8}) and the \code{lti::channel}, which is an matrix of floats.
+
+\subsection{Image Regions and Contours}\label{regions}
+
+
+The data structures for the representation of Vector, Matrix and Image Types
+(\ref{img}) are not enough to satisfy every requirement of the image
+processing algorithms. Some types to allow the representations of image
+regions are also required.
+
+This function will be achieved by classes like \code{lti::pointList} and its
+subclasses (\code{lti::areaPoints}, \code{lti::borderPoints} and
+\code{lti::ioPoints}).
+
+\subsection{Sequences}\label{sequences}
+
+The \code{lti::sequence} is a sort of vector of other objects. It is indeed based on the std::vector, but with a LTI-lib standard interface.
+
+\subsection{Histograms}\label{histograms}
+The histograms are a collection of classes used to generate n-dimensional
+statistics. The base class is \code{lti::histogram}. Usually a
+\code{lti::mapperFunctor} is used to map the input space into the histogram
+cell-space.
+
+\subsection{Pyramids}\label{pyramids}
+The multiresolutional analysis requires frequently the use of pyra\-mi\-dal
+data structures. Gaussian, Laplacian and Gabor pyr\-a\-mids are examples of
+this data-structures. (see \code{lti::pyramid},
+\code{lti::gaussianPyramid}, \code{lti:: gaborPyramid})
+
+\subsection{Trees}\label{trees}
+ A container class for ordered n-Trees is implemented in \code{lti::tree}
+
+\section{Functors}\label{functors}
+
+The functors are objects which can operate on given data structures. They can
+be parameterized with different values of some specific members.
+
+For example, the functor which saves an image in a BMP-File has parameters
+which include the name of the image file, the compression rate to be used, the
+color depth and so on. For a Gaussian filter we need only the variance and the
+dimension of the filter.
+
+The \ltilib\ encapsulates these functor parameters in an object of an internal class called "parameters" (see \code{lti::functor::parameters}). The programmer knows, that all parameters required for a functor will be defined in its class parameters.
+
+\subsection{Mathematical Operations}\label{mathOp}
+\begin{itemize}
+\item
+Noise and probability distributions\begin{itemize}
+\item
+\code{lti::noise} adds noise with a given distribution to matrixes or vectors \item
+\code{lti::randomDistribution} classes are used to generate random numbers which follow a specific
+probability distribution\end{itemize}
+\item
+Linear Algebra\begin{itemize}
+\item
+\code{lti::linearEquationSystemSolutionMethod}\item
+\code{lti::matrixInversion}\item
+\code{lti::minimizeBasis}\item
+\code{lti::principalComponentsAnalysis}\item
+\code{lti::l1Distance}, \code{lti::l2Distance}\item
+\code{lti::varianceFunctor} calculates variance and covariance\item
+\code{lti::serialStatsFunctor} and \code{lti::meansFunctor}\end{itemize}
+\end{itemize}
+\subsection{Filters}\label{filters}
+\begin{itemize}
+\item Kernels for linear filters\begin{itemize}
+\item gaussian kernels (\code{lti::gaussKernel2D}, \code{lti::gaussKernel1D})
+\item gabor kernels (\code{lti::gaborKernelSep}, \code{lti::gaborKernel})
+\item oriented gaussian derivatives (\code{lti::ogd1Kernel},
+  \code{lti::ogd2\-Kernel})
+\item gradient approximation kernels (\code{lti::gradientKernelX},
+  \code{lti:: gradientKernelY})
+\item binary kernels for the morphological operators
+  (\code{lti::city\-Block\-Kernel}, \code{lti::chess\-Board\-Kernel},
+  \code{lti::octagonal\-Kernel}, \code{lti::euclidean\-Kernel})
+\end{itemize}
+\item
+Linear Filters (convolves objects with linear kernels)\begin{itemize}
+\item
+\code{lti::convolution}\item
+\code{lti::squareConvolution} implements convolution with a rectangular filter kernel.\item
+\code{lti::downsampling} Efficient implementation of a  filter-downsampling pair.\item
+\code{lti::decimation} efficient implementation of image decimation\item
+\code{lti::upsampling} Upsampling-filter pair.\item
+\code{lti::filledUpsampling} efficient implementation of upsampling with a rectangular filter.\item
+\code{lti::correlation}\end{itemize}
+\item
+Iterating functors This functors apply a simple function to all elements of the matrix. Please note, that this can also be done giving the C-Style function to the apply() method of the matrix.\begin{itemize}
+\item
+\code{lti::absoluteValue}\item
+\code{lti::logarithm}\item
+\code{lti::addScalar}, \code{lti::multiplyScalar}\item
+\code{lti::square}, \code{lti::squareRoot}\end{itemize}
+\end{itemize}
+\begin{itemize}
+\item
+Morphological operators\begin{itemize}
+\item
+\code{lti::dilation}\item
+\code{lti::erosion}\end{itemize}
+\end{itemize}
+\subsection{Transforms and Modifiers}\label{transform}
+\begin{itemize}
+\item
+Color spaces transformations\begin{itemize}
+\item
+\code{lti::mergeImage} Merge three channels in a color image\item
+\code{lti::splitImage} Splits an image in different color spaces\item
+\code{lti::rgbColorQuant} color quantization in RGB space\end{itemize}
+\item
+Gray value transformations\begin{itemize}
+\item
+\code{lti::histogramEqualization}\end{itemize}
+\item
+Coordinate Transforms
+\begin{itemize}
+\item cartesian$\leftrightarrow$polar coordinate: \code{lti::cartesianToPolar} and \code{lti::
+  polarToCartesian}
+\end{itemize}
+\item
+Other Transforms\begin{itemize}
+\item
+FFT: \code{lti::realFFT} and \code{lti::realInvFFT}\item
+Optical Flow: \code{lti::opticalFlowHS}\item
+Illuminant Color Normalization: \code{lti::colorNormalization}\end{itemize}
+\end{itemize}
+\subsection{Other image processing functors}\label{imgproc}
+\begin{itemize}
+\item
+Edge detectors\begin{itemize}
+\item
+\code{lti::susanEdges} Use SUSAN algorithm to extract the edges of an image\end{itemize}
+\item
+Segmentation\begin{itemize}
+\item
+\code{lti::thresholdSegmentation}\item
+\code{lti::regionGrowing}\end{itemize}
+\item
+Tools for segmentation\begin{itemize}
+\item
+\code{lti::objectsFromMask}\item
+\code{lti::boundingBox}\end{itemize}
+\end{itemize}
+\subsection{Input and Output}\label{inout}
+
+
+\begin{itemize}
+\item
+The \ltilib\ supports loading and saving of Windows Bitmap files (BMP),  Jpeg files (JPEG) and Portable Network
+Graphics files(PNG).
+\begin{itemize}
+\item
+\code{lti::loadBMP}\item
+\code{lti::saveBMP}\item
+\code{lti::loadJPEG}\item
+\code{lti::saveJPEG}\item
+\code{lti::loadPNG}\item
+\code{lti::savePNG}\end{itemize}
+\item
+It can also acquire data directly from a frame grabber:\begin{itemize}
+\item \code{lti::frameGrabber}
+\item \code{lti::quickCam}
+\item \code{lti::toUCam}
+\item \code{lti::ltiFrameGrabber}
+\end{itemize}
+\end{itemize}
+\section{Viewer and Drawing Tools}\label{draw}
+\begin{itemize}
+\item
+Viewers There are two viewers in the \ltilib\:\begin{itemize}
+\item \code{lti::externViewer}\par This viewer
+  is used to invoke in a very easy way an external application. \item
+  \code{lti::viewer}\par Is a {\tt GTK}-based object,
+  which runs in its own thread, to allow the user a very easy way to show
+  images, fast as easy as the std::cout stream!\end{itemize}
+\end{itemize}
+\begin{itemize}
+\item
+Drawing tools\begin{itemize}
+\item
+\code{lti::draw}\item
+\code{lti::draw3D}\item
+\code{lti::epsDraw}\item
+\code{lti::drawFlowField}\end{itemize}
+\end{itemize}
+\section{Objects for multithreading}\label{system}
+ Some objects allow a OS independent use of multithreading functions:\begin{itemize}
+\item
+\code{lti::thread}\item
+\code{lti::mutex}\item
+\code{lti::semaphore}\end{itemize}
+\section{Classifiers}\label{classifiers}
+ It is possible with the \ltilib\ to use some classifiers. \begin{itemize}
+\item \code{lti::rbf} Radial Basis Functions
+\item \code{lti::MLP} Back propagation networks
+\item \code{lti::svm} Support Vector Machines
+\item \code{lti::hmmClassifier} Hidden Markov Models
+\end{itemize}
+Classifications statistics can be generated using
+ \begin{itemize}
+\item \code{lti::classificationStatistics}
+\end{itemize}
+
+There are many others supervised and unsupervided classifiers.  
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "DevelopersGuide"
+%%% End:

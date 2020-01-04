@@ -1,0 +1,66 @@
+
+# Makefile for the JNI to the LTI library.
+# For the JNI to work, you have to add the directories in which
+# liblti.so and libltiMatrix.so and libltiVector.so reside to
+# your LD_LIBRARY_PATH.
+# $Id: Makefile.jni.in,v 1.1 2004/11/22 15:42:40 sltilib Exp $
+
+CXX = @CXX@
+
+# For new versions of gcc, <limits> already exists, but in older
+# versions a replacement is needed
+CC_MAJOR:=$(shell echo `$(CXX) --version | head -1 | sed -e 's/^.*\([23]\)\..*/\1/;'`)
+
+ifeq "$(CC_MAJOR)" "2"
+  VPATHADDON=:_/linux/g++
+  CPUARCH = @_ac_cpuarch_gcc2@ -ftemplate-depth-35
+else
+  VPATHADDON=
+  CPUARCH = @_ac_cpuarch_gcc3x@
+endif
+
+VPATHADDON += :_/misc/lamath
+
+# Directories with source file code (.h and .cpp)
+
+VPATH:=_/src/basics:_/src/math:_/src/imgProc:_/src/io:_/src/ioBasics:_/src/io/png:_/src/io/jpeg:_/src/viewer:_/src/system:_/src/classifiers:_/linux/workbench$(VPATHADDON)
+
+#USELAPACK = YES
+
+#include ../../lamath/LApack.inc
+
+CXXINCLUDE = -I. $(patsubst %,-I%,$(patsubst _/%,$(LTIBASE)/%,$(subst :, ,$(VPATH))))
+
+JNISRC = $(wildcard *.cpp)
+JNIHEADERS = $(wildcard jni*.h)
+JNILIBSRC = $(patsubst %.h,%.cpp,$(JNIHEADERS))
+
+CXXFLAGSDEB = -c -g $(CPUARCH) -Wall -ansi -Wundef -Wmissing-prototypes -Wwrite-strings -D_XOPEN_SOURCE=500 -D_REENTRANT -D_DEBUG -fpic
+CXXFLAGSREL = -c -O3 $(CPUARCH) -fno-omit-frame-pointer -Wall -ansi -Wundef -Wmissing-prototypes -Wwrite-strings -D_XOPEN_SOURCE=500 -D_REENTRANT -DNDEBUG -fpic
+
+ifeq "$(RELEASE)" "YES"
+LTIOBJDIR = $(LTIBASE)/obj/release
+LTILIB = ltinvr
+LTILIBFILE = $(LTIBASE)/lib/libltimathr.a
+#LAMATHLIB = ltilamathr
+#LAMATHLIBFILE = $(LTIBASE)/lib/libltilamathr.a
+CXXFLAGS=$(CXXFLAGSREL)
+else
+LTIOBJDIR = $(LTIBASE)/obj/debug
+LTILIB = ltinvd
+LTILIBFILE = $(LTIBASE)/lib/libltimathd.a
+#LAMATHLIB = ltilamathd
+#LAMATHLIBFILE = $(LTIBASE)/lib/libltilamathd.a
+CXXFLAGS=$(CXXFLAGSDEB)
+endif
+
+CC = @echo "Compiling $< " ; $(CXX) $(CXXFLAGS) $(CXXINCLUDE) $(JNIINCLUDE)
+LN = @echo "Linking $@ " ; $(CXX)  -shared -L$(LTIBASE)/lib
+
+
+
+
+
+
+
+

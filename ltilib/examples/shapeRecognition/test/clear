@@ -1,0 +1,3 @@
+#!/bin/bash
+
+find . -name *_???.png -exec rm {} \;

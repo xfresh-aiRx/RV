@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ln -s ../../misc/eval/ltiParetoFront.h .
+ln -s ../../misc/eval/ltiParetoFront.cpp .
+ln -s ../../misc/eval/ltiSegmentationEvaluation.h
+ln -s ../../misc/eval/ltiSegmentationEvaluation.cpp

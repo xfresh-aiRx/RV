@@ -1,0 +1,142 @@
+#!/usr/bin/perl
+
+# filename without .h or .cpp
+$filename=shift(@ARGV);
+
+$filename =~ s/\.(h|cpp)$//;
+$cfilename="$filename.cpp";
+$hfilename="$filename.h";
+
+# create an empty C++ file
+sub makeCFile {
+  open(COUT, ">$cfilename") || die "Cannot create $cfilename";
+  my $now=localtime();
+  my $cls=$cfilename;
+  my @pwent=getpwent();
+  $cls =~ s/\.cpp//;
+  my $lid='$'."Log: ".'$';
+  print COUT <<EOF;
+/*----------------------------------------------------------------
+ * LTIlib JNI File, generated at $now
+ * project ....: LTIlib
+ * file .......: $cfilename
+ * classes ....: $cls
+ * types ......: 
+ * description : 
+ * authors ....: $pwent[5]
+ * organization: LTI, RWTH Aachen
+ * creation ...: $now
+ * $lid
+ */
+
+#include <jni.h>
+#include "$filename.h"
+
+EOF
+    close(COUT);
+  }
+
+# open header and implementation files
+open(HIN,"$hfilename") || die "cannot open $hfilename";
+if (! -f "$cfilename") {
+  &makeCFile();
+}
+open(CIN,"$cfilename") || die "cannot open $cfilename";
+
+$lno=0;
+
+# first, read header file
+while (<HIN>) {
+  $lno++;
+  # read comment, store for later use
+  if (/\/\*/) {
+    $cln=1;
+    $comment=$_;
+    while ($comment !~ /\*\//) {
+      $_=<HIN>;
+      $lno++;
+      $cln++;
+      $comment.=$_;
+    }
+    chop($comment);
+  }
+  # read function signature
+  if (/JNIEXPORT(.+Java_)(\w+)/) {
+    $name=$2;
+    $hlineno{$name}=$lno;
+    $rettype{$name}=$1;
+    $signature{$name}=<HIN>;
+    $lno++;
+    chop($signature{$name});
+    $used{$name}=0;
+    $comment{$name}=$comment;
+    $commentlines{$name}=$cln;
+  }
+}
+
+$lno=0;
+
+# now, read implementation file
+while (<CIN>) {
+  $lno++;
+  if (/JNIEXPORT.+Java_(\w+)/) {
+    $name=$1;
+    $clineno{$name}=$lno;
+    $used{$name}=1;
+    $impl{$name}=<CIN>;
+    $lno++;
+    # modify function signature such that it can be compared to declaration
+    $impl{$name}=~ s/ \{\s*$/\;/;
+    $impl{$name}=~ s/\w+\s*(,|\))/\1/g;
+    $impl{$name}=~ s/\s+//g;
+    while ($impl{$name} =~ /,$/) {
+      $lno++;
+      $tmp=<CIN>;
+      $tmp=~ s/ \{\s*$/\;/;
+      $tmp=~ s/\w+(,|\))/\1/g;
+      $tmp=~ s/\s+//g;
+      $impl{$name}.=$tmp;
+    }
+  }
+}
+
+close(CIN);
+# open implementation file for appending missing functions
+open(COUT,">>$filename.cpp") || die "cannot append to $filename.cpp";
+
+foreach $h (keys(%signature)) {
+  if ($used{$h} == 0) {
+    print "$cfilename:$lno: Appending implementation for $h\n";
+    # print function signature
+    print COUT "\n$comment{$h}\nJNIEXPORT$rettype{$h}$h\n";
+    $lno+=$commentlines{$h}+8;
+    $code="// insert variables in signature:\n$signature{$h}";
+    # print empty function code block
+    $code =~ s/;$/ \{\n  \/\/ insert your code here\n\}\n\n/;
+    print COUT "$code";
+  }
+}
+
+# close file
+close(COUT);
+
+# now check if there are any discrepancies between header and implementation
+my $warned=0;
+foreach $c (keys(%impl)) {
+  $signature{$c} =~ s/\s+//g;
+  if ($impl{$c} ne $signature{$c}) {
+    print "$cfilename:$clineno{$c}: Warning: Inconsistent signatures for $c:\n";
+    print "$cfilename:$clineno{$c}: implemented is $impl{$c}\n";
+    print "$hfilename:$hlineno{$c}: declared is $signature{$c}\n";
+    $warned=1;
+  }
+}
+
+if (!$warned) {
+  my $now=time();
+  utime($now,$now,$cfilename);
+}
+
+
+    
+

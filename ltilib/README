@@ -1,0 +1,156 @@
+---------------------------------------------------------------------
+ 
+                               LTI-Lib 
+
+                   Lehrstuhl für Technische Informatik
+                  (Chair of Technical Computer Science)
+                         RWTH-Aachen University
+
+---------------------------------------------------------------------
+
+The LTI-Lib is an object oriented library with algorithms and data
+structures frequently used in image processing and computer vision.
+It has been developed at the Chair of Technical Computer Science
+(Lehrstuhl fuer Technische Informatik) LTI at the RWTH-Aachen
+University, as part of many research projects in computer vision
+dealing with robotics, object recognition and sing language and
+gesture recognition.
+
+The main goal of the LTI-Lib is to provide an object oriented
+library in C++, which simplifies the code sharing and maintenance, but
+still providing fast algorithms that can be used in real applications.
+
+The LTI-Lib is free software; permission to use, copy, modify, and
+distribute this software and its documentation under the terms of the
+GNU Lesser General Public License is hereby granted. No
+representations are made about the suitability of this software for
+any purpose. It is provided "as is" without express or implied
+warranty.  For more details about the GNU Lesser General
+Public License visit http://www.gnu.org/copyleft/lesser.html#SEC1 .
+
+The LTI-Lib is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+Visit the homepage at http://ltilib.sourceforge.net for more
+information.
+
+---------------------------------------------------------------------
+
+Following files can be used with the LTI-Lib but are NOT part of it
+due to some License issues:
+
+---
+Functors based on the SUSAN algorithms.
+
+  A UK pantent has been granted for these algorithms:
+
+  * "Method for digitally processing images to determine the position
+  * of edges and/or corners therein for guidance of unmanned vehicle",
+  * UK Patent 2272285. Proprietor: Secretary of State for Defence,
+  * UK. 15 January 1997
+
+  For this reason the code using them cannot be released under the LGPL
+  License.  You can use the files under the original SUSAN-Code
+  conditions: 
+
+  * This code is issued for research purposes only and remains the
+  * property of the UK Secretary of State for Defence. This code must
+  * not be passed on without this header information being kept
+  * intact. This code must not be sold.
+
+  The files using SUSAN algorithms in the LTI-Lib are the following:
+  
+  ltiSusan.h        ltiSusan.cpp
+  ltiSusanCorners.h ltiSusanCorners.cpp
+  ltiSusanDenoise.h ltiSusanDenoise.cpp
+  ltiSusanEdges.h   ltiSusanEdges.cpp
+
+  See the header in this files for more details.
+
+---
+Functors for reading and writing png and jpeg files.
+
+  This files are based on the code by John M. Miano (Colosseum
+  Builders, Inc.), which are released under their own license.  All
+  source files in the io/jpeg and io/png directories are released
+  with the original Miano's code coditions, and NOT under LGPL:
+
+  * Permision is granted to use, modify this software provided these conditions
+  * are followed:
+  *
+  * 1. You understand this software comes with no warranties of any kind
+  *    whatsoever.
+  * 2. You assume full responsibility for the use of this software and transmit
+  *    no liability to the authors.
+  * 3. You assume the responsility for obtaining licenses for from any patent
+  *    holders.
+  * 4. If you distribute this code in source form, you must include this file
+  *    unmodified and document the changes you have made.
+  * 5. If you incorporate this code in a product distributed without
+  *    source code you state included in your documentation that it is
+  *    based in part on software from Colosseum Builders, Inc.
+  * 
+
+  See the header of these files (io/png and io/jpeg) for more
+  information:
+
+  ltijfif.cpp      ltijfif.h        ltijpdecobk.h      ltijpdecomp.cpp
+  ltijpdecomp.h    ltijpdedu.cpp    ltijpdedu.h        ltijpdehuff.cpp
+  ltijpdehuff.h    ltijpdequan.cpp  ltijpdequan.h      ltijpeg.cpp
+  ltijpegdeco.cpp  ltijpegdeco.h    ltijpegenco.cpp    ltijpegenco.h
+  ltijpeg.h        ltijpencobk.h    ltijpencomp.cpp    ltijpencomp.h
+  ltijpendu.cpp    ltijpendu.h      ltijpenhuff.cpp    ltijpenhuff.h
+  ltijpenquan.cpp  ltijpenquan.h    ltijpgexcep.h      ltijpmarker.h
+
+  ltipngadler32.h                   ltipngcrc32.cpp 
+  ltipngcrc32.h                     ltipngdecoder.cpp
+  ltipngdecoder.h                   ltipngdeflateencoder.cpp
+  ltipngdeflateencoder.h
+  ltipngdeflatehuffmanencoder.cpp   ltipngdeflatehuffmanencoder.h
+  ltipngdeflateoutputstream.h       ltipngdeflatepvt.h
+  ltipngencoder.cpp                 ltipngencoder.h
+  ltipngendian.h                    ltipngexcept.h
+  ltipnginflatedecoder.cpp          ltipnginflatedecoder.h
+  ltipnginflatehuffmandecoder.cpp   ltipnginflatehuffmandecoder.h
+  ltipnginflateinputstream.h        ltipnginputbytestream.cpp
+  ltipnginputbytestream.h           ltipnginputstream.cpp
+  ltipnginputstream.h               ltipngoutputbytestream.cpp
+  ltipngoutputbytestream.h          ltipngoutputstream.cpp
+  ltipngoutputstream.h              ltipngsystemspecific.h
+
+  
+
+---------------------------------------------------------------------
+                              Linux
+---------------------------------------------------------------------
+
+See the HTML documentation for more information, or if you are in
+a hurry the ltilib/linux/README
+
+---------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------
+                              WinNT
+---------------------------------------------------------------------
+
+See the HTML documentation for more information, or if you are in
+a hurry the ltilib/win/README
+
+---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+

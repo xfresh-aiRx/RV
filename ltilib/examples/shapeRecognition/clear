@@ -1,0 +1,8 @@
+#!/bin/bash
+cd test
+./clear
+cd ../train
+./clear
+cd ../
+make clean-all
+rm -r data/

@@ -1,0 +1,4 @@
+test/triangle/triangle.png
+test/square/square.png
+test/rectangle/rectangle.png
+test/circle/circle.png

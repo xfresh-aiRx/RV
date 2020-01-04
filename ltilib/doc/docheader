@@ -1,0 +1,15 @@
+<HTML>
+  <HEAD>
+    <meta name="robots" content="noindex">
+    <TITLE>$title - $projectname</TITLE>
+    <LINK HREF="doxygen.css" REL="stylesheet" TYPE="text/css">
+  </HEAD>
+  <BODY BGCOLOR="#FFFFFF">
+<table align=center border=0>
+  <tr>
+    <td align=center>
+    <a href="http://www.techinfo.rwth-aachen.de" border=0><img
+  src="ltilib.png" border=0 align=center></a>
+    </td>
+  </tr>
+</table>

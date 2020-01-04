@@ -1,0 +1,191 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%                 LTI Library Developers Guide
+%       Lehrstuhl fuer Technische Informatik, RWTH Aachen
+%
+%                         1999-2003
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[11pt,titlepage,a4paper]{scrreprt}
+\usepackage[american]{babel}
+\usepackage{varioref}
+\usepackage{graphicx}
+\usepackage{latexsym,fancyheadings}
+\usepackage{here,named}
+\usepackage{amsmath,amstext,amssymb}
+\usepackage{array}
+\usepackage{isolatin1}
+\usepackage{fancybox}
+\usepackage{multirow}
+\usepackage{alltt}
+\usepackage{makeidx} \makeindex
+\usepackage{picinpar}
+%
+%%% check whether we are running pdflatex
+\newif\ifpdf 
+\ifx\pdfoutput\undefined 
+\pdffalse % we are not running pdflatex 
+\else 
+\pdfoutput=1 % we are running pdflatex 
+\pdfcompresslevel=9     % compression level for text and image;
+\pdftrue 
+\fi
+%% For pdflatex
+\ifpdf
+\usepackage[pdftex,colorlinks,backref,pagebackref]{hyperref}
+\else
+\usepackage[backref,pagebackref]{hyperref}
+\fi
+%\usepackage{thumbpdf}
+
+
+%% Seite Dimensionen für A4
+\hoffset28mm
+\voffset0mm
+\evensidemargin0mm
+\topmargin0mm
+\headheight7mm
+\headsep10mm
+\textheight220mm
+\textwidth130mm
+\marginparsep3mm
+\marginparwidth30mm
+\marginparpush3mm
+\footskip12mm
+
+\parskip3mm
+\parindent0mm
+
+\pagestyle{fancy}
+
+\lhead[\rm\thepage]{\sl\rightmark}
+\rhead[\sl\leftmark]{\includegraphics[width=2cm]{fig/lti-rwth}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%    DOCUMENT
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\sloppy
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%    Commands
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\reversemarginpar
+
+\newcommand{\marginlabel}[1]{%
+  %\mbox{}\marginpar{\raggedleft#1}
+  \makebox[0pt]{}\marginpar{\raggedleft#1}\ignorespaces}%
+
+\newcommand{\lti}{\textsf{LTI\,}}
+\newcommand{\rar}{$\rightarrow$}
+\newcommand{\ltilib}{\textsf{LTI-Lib\,}}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\zB}{z.\,B.}
+\newcommand{\ZB}{Z.\,B.}
+\newcommand{\ie}{i.\,e.}
+\newcommand{\eg}{e.\,g.}
+\newcommand{\Dh}{D.\,h.}
+\newcommand{\product}[1]{\textsc{#1}}
+\newcommand{\java}{\product{Java}}
+\newcommand{\scheme}{\product{Scheme}}
+\newcommand{\visualc}{\product{MS Visual C++}}
+\newcommand{\cvs}{\product{cvs}}
+\newcommand{\dqq}[1]{\glqq #1\grqq}
+\newcommand{\sqq}[1]{\glq #1\grq}
+\newcommand{\ltiurl}[1]{\underline{\textit{#1}}}
+
+\newcommand{\cxx}{\textsf{ANSI C++\,}}
+\newcommand{\stl}{\textsf{Standard Template Library\,}}
+
+\newcommand{\button}[1]{\ovalbox{\footnotesize\rule{0pt}{1.8ex}\textsf{%
+\textbf{#1}}}}
+\newcommand{\radioButton}[1]{\footnotesize$\odot$~\textsf{\textbf{#1}}%
+\normalsize}
+\newcommand{\checkBox}[1]{\footnotesize$\Box$~\textsf{\textbf{#1}}%
+\normalsize}
+\newcommand{\txtfeld}[1]{\footnotesize\textsf{#1}\normalsize}
+\newcommand{\typ}[1]{\texttt{#1}}
+\newcommand{\icon}[1]{%
+ \raisebox{-1ex}{\includegraphics[width=7mm]{#1}}%
+}
+
+\newcommand{\mbutton}[1]{\marginlabel{\button{#1}}}
+\newcommand{\mradioButton}[1]{\marginlabel{\radioButton{#1}}}
+\newcommand{\mcheckBox}[1]{\marginlabel{\checkBox{#1}}}
+\newcommand{\micon}[1]{\marginlabel{\icon{#1}}}
+\newcommand{\mtxtfeld}[1]{\marginlabel{\txtfeld{#1}}}
+\newcommand{\mtyp}[1]{\marginlabel{\typ{#1}}}
+
+%% Index %%
+
+\newcommand{\inIndex}[1]{#1\index{#1}}
+\newcommand{\boldIndex}[1]{#1\index{#1@\textbf{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%       Titlepage
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{titlepage}
+\clearpage
+\thispagestyle{empty}
+
+\pagenumbering{roman}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%       Address      
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagenumbering{roman}
+\input{address}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%       Contents
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{2}
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%       Chapters
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{legal}
+\input{introduction}
+\input{architecture}
+\input{cxxstyle}
+\input{classtree}
+\input{cvs}
+%\input{compiler}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%       References    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliographystyle{myplain}
+\bibliography{reference}
+
+\addcontentsline{toc}{chapter}{Index}
+\printindex
+
+\end{document}
+
+
+

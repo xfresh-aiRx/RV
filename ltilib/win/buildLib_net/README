@@ -1,0 +1,17 @@
+Building the LTI-Lib binaries with Visual Studio .NET
+
+- Prerequisites:
+  * installed Visual Studio .NET 2003 Professional
+  * installed Perl interpreter
+  * installed CVS (optional)
+
+- configure buildLib.net.bat:
+  * you have to change settings in the configuration section of the script to
+    make it work as you wish, see the script itself for the details
+  
+- run buildLib.net.bat:
+  * call buildLib.net.bat with -help option to see availabe command line options
+  * a call without options will do the following:
+    - new sources are NOT checked out (use -co to do so)
+    - all header files of the ltilib are collected and copied to ltilib\lib\headerfiles
+    - an update build for all configurations is performed

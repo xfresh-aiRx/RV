@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# this is a little shell script which merges two or more static libraries.
+# it requires bash and a version of ar which knows the r command.
+# The /tmp-directory needs as much space as all of the merged libraries
+# together require.
+# 
+# Invocation:
+# mergeLibs [-o output] [-h|-?|-help] libs ...
+# -o <target> sets the output file to <target>. Default is "libout.a"
+# -h, -?, -help all print a little help message.
+# libs are the  libraries which are to be merged.
+
+# $Id: mergeLibs,v 1.2 2001/07/04 15:00:20 wickel Exp $
+
+target=libout.a
+
+# parse command line arguments
+while [ -n "$1" ]; do
+  case "$1" in
+    -o) shift ; target=$1 ;;
+    -h|-?|-help) cat <<EOF
+mergeLibs is a small shell script which merges two or more static libraries.
+The command syntax is as follows:
+     $0 -o target.a lib1.a lib2.a ...
+It then creates a new file target.a which will contain all of the object
+files contained in one or more of the given libraries.
+EOF
+    exit
+    ;;
+
+    -*) cat <<EOF
+Illegal command line argument: $1
+EOF
+    exit
+    ;;
+    *) libs="$libs $1" ;;
+  esac
+  shift
+done
+
+# remember old directory
+olddir=$PWD
+# get absolute pathnames of given libraries
+libs=`echo $libs | sed "s%^%$PWD/%;"`
+# working directory
+wdir="/tmp/mergeLibs.$$"
+
+# create directory
+test -d $wdir || mkdir $wdir
+cd $wdir
+# extract all library archive contents
+for i in $libs ; do
+  ar x $i
+done
+cd $olddir
+# create new library with all object files
+ar rs $target $wdir/*
+# delete working dir
+rm -r $wdir
+

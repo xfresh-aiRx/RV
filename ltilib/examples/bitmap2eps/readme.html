@@ -1,0 +1,96 @@
+<html>
+<head>
+<title>bitmap2eps user manual</title>
+</head>
+<body>
+<h2>bitmap2eps user manual</h2>
+
+This is a little tool for converting bitmaps into EPS files. It can
+convert bitmaps of type BMP, JPEG, or PNG into EPS files (either color
+or grayscale). 
+
+<h3>Usage</h3>
+
+You can simply call it by<br>
+<tt>
+   bitmap2eps [-c <i>coding_type</i>] [-t <i>type</i>] [-o <i>output_file</i>] <i>filename</i>
+</tt>
+
+<p>
+<dl>
+<dt><i>filename</i></dt>
+<dd>is the name of the bitmap file.</dd>
+<p>
+
+<dt><i>coding_type</i></dt>
+<dd>
+is one of:
+<ul>
+<li><tt>hex</tt><br>
+means that the bitmap data is encoded as hexadecimal
+digits. This coding requires a lot of space, but it is very readable
+for humans.
+</li>
+<li><tt>asc85</tt><br>
+encodes the bitmap data to a range of 85
+characters. It uses about 30% less space than the <tt>hex</tt> coding,
+but is not as readable.
+</li>
+<li><tt>runlength</tt><br>
+first compresses the bitmap by a runlength
+coding method. It is useful mostly for gray-scale images that contain
+large homogeneous areas. It should not be used for color images since
+the R, G, and B channels are interleaved, so that runlength coding is
+ineffective.
+</li>
+<li><tt>jpeg</tt><br>
+uses the JPEG compression facility built into the
+PostScript Level 2 standard. It uses a lossy compression technique, but the
+quality is sufficient for most applications.
+</li>
+<li><tt>deflate</tt><br>
+uses the deflate compression algorithm (same as in gzip). The
+corresponding decompression method is part of the PostScript Level 3
+standard, which is not implemented by most current printers. This is a
+lossless compression method.
+</li>
+</ul>
+The default value is <tt>asc85</tt>.
+</dd>
+
+<p>
+<dt><i>type</i></dt>
+
+<dd>is the type of the resulting EPS file:
+<ul>
+<li><tt>rgb</tt><br> creates an RGB color EPS file.
+</li>
+<li><tt>gray</tt><br> creates a grayscale EPS file. Use this for creating
+files that are printed on grayscale printers - It saves a lot of space
+for the uncompressed codings.
+</li>
+</ul>
+The default is <tt>rgb</tt>.
+</dd>
+
+<p>
+<dt><i>output_file</i></dt>
+<dd>overrides the name of the output file. The default
+output filename is the name of the source file with its extension
+replaced by ".eps".</dd>
+</dl>
+
+<h3>Errors</h3>
+
+There are two possible sources of errors:
+<ul>
+<li>The file does not exist, or does not end in ".png", ".bmp", or
+".jpg". The resulting error message is "Invalid parameters".
+</li>
+<li>There is something wrong with the image file. The resulting error
+message should describe the problem.
+</li>
+</ul>
+</body>
+</html>
+

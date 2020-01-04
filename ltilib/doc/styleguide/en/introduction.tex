@@ -1,0 +1,96 @@
+\chapter{Introduction}
+\label{chap:introduction}
+\pagenumbering{arabic}
+
+The \inIndex{\ltilib}\ encloses a collection of algorithms and data structures
+commonly used in image processing and computer vision applications, developed
+at the Chair of Technical Computer Science (in German \emph{\textbf{L}ehrstuhl
+fuer \textbf{T}echnische \textbf{I}nformatik} (\lti) ), RWTH Aachen
+University.  It is written in C++ in order to allow both object oriented
+programming as well as efficient resulting code.
+%
+Its main goal is to provide a system independent library, adhering as
+closely as possible to the \cxx\ standards.  It is intended to work on
+different operating systems, but it specially supports for \product{Linux/gcc}
+and \product{MS WindowsNT}/\visualc\ systems.
+
+\section{History}
+
+In the last years, several research groups at the \lti have worked on
+different applications in the field of computer vision.  
+%
+Before 1999, all projects using image processing algorithms (Sign Language
+Recognition, Mobile Service Robots and Visual Information Retrieval) developed
+their own software and applications independently.  Two typical
+problems arose:
+
+\begin{enumerate}
+\item work efforts were being wasted due to unnecessary code duplication
+\item reusing code was difficult or even impossible due to the lack for
+  standardized interfaces.
+\end{enumerate}
+
+These reasons forced the design of an internal library, which has been now
+used and extended for a while in all groups at the \lti.  The choice to
+develop a new library was based on several factors:
+
+First, we required a C++ library that followed a consistent object-oriented
+concept.  This was intended to simplify the software development, enhancement
+and maintainability.  Many libraries were implemented in C, or in a C-like C++
+that was not appropriate to enhance or to adapt to our requirements.  Others
+lacked a fundamental concept that could be employed in further developments.
+
+Second, the library should provide not only algorithms for image processing,
+but also for mathematical and statistical tasks, allowing a flexible
+interchange of data between all modules.  Many existent libraries did not
+fulfill these requirements.
+
+Third, some of the regarded libraries were not maintained any more, some had
+no documentation at all.  Commercial libraries were well documented and
+had nifty rapid prototyping tools, but due to a ``closed source'' concept, it
+would be impossible to enhance or to change existing algorithms without
+reimplementing them.  This last point is unacceptable for research purposes.
+
+Fourth, very powerful and widespread tools used in research (like
+\product{Matlab}) can be used to search for solutions of relatively small
+problems, but they showed to be usually too slow for more complex applications
+or complete prototypes involving the whole scope from image acquisition and
+processing to feature extraction and classification.  We usually required
+implementations that can run in real-time or that involve huge amounts of
+data.
+
+The creation of a new library at the \lti\ was not a start-from-scratch
+project, due to the existence of previous code and sufficient expertise from
+all research projects.  At the beginning, an interface was specified and the
+most important algorithms were adapted to it.  The \ltilib\ has grown to more
+than 750 classes (more than 350000 lines), covering image processing,
+mathematics, statistics, neural networks, hardware interfaces, etc. with all
+objects following the same concept.
+
+\index{advantages} The use of \emph{one} library saves development time, which
+otherwise would be required in re-implementing commonly used algorithms.  This
+time can now be invested in the development of new solutions or optimizing
+already existing ones.  This way, not only one developers group will
+benefit from improvements, but all the users of the library.
+%
+Its use increases also the code readability, due to the fact
+that all, complex and simple tasks, will now follow general known
+specifications.  Further development or maintenance are therefore easier.
+
+The following chapters explain the concepts behind the \ltilib\ interface, and
+presents all specifications required in the program coding.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "DevelopersGuide"
+%%% End: 
+
+
+
+
+
+
+
+
+
+

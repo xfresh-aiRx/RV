@@ -1,0 +1,5 @@
+((quantParameters ((maximalNumberOfIterations 50)
+   (thresholdDeltaPalette 0.300000012)
+   (numberOfColors 8)))
+ (smoothFilter "KNearest")
+ (kernelSize 5))

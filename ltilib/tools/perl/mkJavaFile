@@ -1,0 +1,736 @@
+#!/usr/bin/perl
+
+# This is a script that automatically generates a Java interface class
+# from a C++ file.
+# there are several possible C++ files:
+# - a header file. This is absolutely required
+# - a _template header file for template classes.
+# - a cpp file. It is required for non-template classes, but optional
+#   for template classes.
+
+# at present, it only parses the header file.
+
+use strict;
+
+# the debugging flag
+my $debug;
+
+my @lines;
+my @docs;
+
+# array which holds the type names of all enums, so we can replace
+# them by int
+my @enums;
+
+# default values for preprocessor macros
+# during parsing,  macro definition will be reflected in this array
+my %macros=('__linux__' => 1,
+            '_MSC_VER' => "");
+
+# the package name for all classes
+my $ltipackage="de.rwth_aachen.techinfo.ltilib";
+# the subpackage, e.g. imgproc, basics, ...
+my $subpackage="";
+# the member name of the reference to the native object
+my $idname="nativeObject";
+# the type of the reference to the native object
+my $idtype="long";
+# the base class of all ltilib objects
+my $root = "LibBase";
+
+# gives for each class the name of the surrounding class
+# $outer{name} is empty if name is a top-level class
+my %outer;
+# gives for each class the name of the surrounding class
+# $parent{name} is empty if name is a top-level class
+my %parent;
+
+# the arrays containing the mappings from C to java and vice versa
+my %c2j;
+my %j2c;
+
+# the name of the classname translation file
+my $transfile;
+
+# the name which contains the import list
+my $importfile;
+# the import list
+my @imports;
+
+# the files that are to be processed
+my @filenames;
+
+my $outfile;
+
+# the target directory for the cpp files
+my $jniDir=$ENV{'HOME'}."/ltilib/misc/java/jni";
+# the script which checks the consistency of the header file generated
+# by javah and the implementation
+my $checkImpl="$jniDir/checkImpl";
+# the output base directory for the java source files
+my $javaoutdir=$ENV{'HOME'}."/ltilib/misc/java/sources/";
+
+# flag which tells us if we should compile the Java file
+my $compile=1;
+
+# parse the command line arguments
+sub parseArgs {
+  # the file which contains the identifier translation rules
+  $transfile="c2j.txt";
+  @filenames=();
+  $importfile="imports.txt";
+  $subpackage="";
+  for (my $i=0; $i <= $#ARGV; $i++) {
+    if ($ARGV[$i] =~ /^-/) {
+      if ($ARGV[$i] =~ /^-tr/) {
+        # read a different translation rule file
+        $transfile=$ARGV[++$i];
+      } elsif ($ARGV[$i] =~ /^-d/) {
+        # enable debug mode
+        $debug=1;
+      } elsif ($ARGV[$i] =~ /^-o/) {
+        # set the output file
+        $outfile=$ARGV[++$i];
+      } elsif ($ARGV[$i] =~ /^-p/) {
+        # set the name of the sub-package
+        $subpackage=$ARGV[++$i];
+      } elsif ($ARGV[$i] =~ /^-c/) {
+        $compile=0;
+      } elsif ($ARGV[$i] =~ /^-i/) {
+        # set the name of the file with the imported packages
+        $importfile=$ARGV[++$i];
+      } else {
+        print STDERR "Unknown option $ARGV[$i], ignoring.\n";
+      }
+    } else {
+      push(@filenames,$ARGV[$i]);
+    }
+  }
+  # build complete package name
+  if ($subpackage ne "") {
+    $ltipackage.=".$subpackage";
+  }
+  # build a default output file name for the Java file
+  if ($outfile eq "") {
+    $outfile=$filenames[0];
+    $outfile=~ s/^.*\/(\w+)\.(h|cpp)/\1/;
+    $outfile=~ s/lti//;
+    $outfile=$ltipackage.".".ucfirst($outfile);
+    $outfile=~ tr/./\//;
+    $outfile="$javaoutdir/$outfile.java";
+  }
+  print STDERR "Outfile is $outfile\n" if ($debug);
+}
+
+
+
+# parse the class name file.
+# the file is line oriented, each line containing something like
+# lti::classname<double> => imgProc.ClassName
+sub readTransFile {
+  my $file=$_[0];
+  open(IN,"$file") || die "Cannot open class name translation file";
+  while (<IN>) {
+    next if (/^\#/);
+    if (/(\S+)\s*=>\s*(\S+)/) {
+      $c2j{$1}=$2;
+      $j2c{$2}=$1;
+    }
+  }
+  close(IN);
+}
+
+# reads the import list. The file given as argument contains
+# a list of packages which are imported into all classes.
+sub readImportList {
+  my $file=$_[0];
+  open(IN, "$file") || die "Cannot open package import list";
+  while (<IN>) {
+    next if (/^\#/);
+    if (/((\w+\.)*\w+)/) {
+      if ($1 ne $ltipackage) {
+        push(@imports,$1);
+      }
+    }
+  }
+  close(IN);
+}
+
+
+# extracts document lines from the C++ file. The line whose index
+# is given as argument is assumed to start the comment.
+sub extractDoc {
+  my $j=$_[0];
+  do {
+    $docs[$j]=$lines[$j];
+    $docs[$j] =~ s/\s+$/\n/;
+    $docs[$j] =~ s/^  //;
+  } while ($lines[$j++] !~ /\*\/\s*$/);
+}
+
+
+
+# reads  a C++ header file and separates code from comments
+# also parse preprocessor directives
+sub readFile {
+  my $file=$_[0];
+  open(IN,"$file");
+  @lines=<IN>;
+  close(IN);
+  @docs=();
+  my @stack=(1);
+  
+  # throw away comments
+  my $incomment;
+  foreach my $i (0..$#lines) {
+    $lines[$i] =~ s/[\r\n]+/ /;
+    $lines[$i] =~ s/\/\/.*$//;
+    if ($lines[$i] =~ /\/\*\*/) {
+      # we have a doxygen comment, copy it
+      &extractDoc($i);
+    }
+    #print STDERR "Looking for comments in $lines[$i]\n";
+    # look for general comments
+    if ($lines[$i] =~ /\/\*/) {
+      if ($lines[$i] !~ s/\/\*.*\*\///) {
+        $lines[$i] =~ s/\/\*.*$//;
+        $incomment=1;
+      }
+      next;
+    }
+    # look for termination of comments
+    if ($lines[$i] =~ /\*\//) {
+      $incomment=0;
+      $lines[$i]=~ s/(\/\*|^).*\*\///;
+      next;
+    }
+    # delete any code if we are in the middle of a comment
+    if ($incomment) {
+      $lines[$i]="";
+    }
+    if ($lines[$i] =~ /^\#\s*if(n?def)?\s+(!?)(\w+)/) {
+      # process preprocessor directive
+      my $mac=$3;
+      my $def=$1;
+      my $neg=$2;
+      print STDERR "Found if directive on $mac, value is ".$macros{$mac}."\n" if ($debug);
+      if ($def eq "def") {
+        # look if macro is defined
+        push(@stack,($macros{$mac} ne ""));
+      } elsif ($def eq "ndef") {
+        push(@stack,($macros{$mac} eq ""));
+      } else {
+        # look if macro is defined and has a value != 0
+        if ($neg eq "") {
+          push(@stack,(($macros{$mac} ne "") && ($macros{$mac} != 0) ));
+        } else {
+          push(@stack,(($macros{$mac} eq "") || ($macros{$mac} == 0) ));
+        }
+      }
+      $lines[$i]="";
+    } elsif ($lines[$i] =~ /^\#\s*else/) {
+      print STDERR "Found else directive\n" if ($debug);
+      $stack[$#stack]=$stack[$#stack] ? 0 : 1;
+      $lines[$i]="";
+    } elsif ($lines[$i] =~ /^\#\s*endif/) {
+      print STDERR "Found endif directive\n" if ($debug);
+      pop(@stack);
+      $lines[$i]="";
+    } elsif ($lines[$i] =~ /^\#\s*define\s+(\w+)\s*(\S+)?/) {
+      # perform a macro definition
+      if ($2 eq "") {
+        $macros{$1}=0;
+      } else {
+        $macros{$1}=$2;
+      }
+      $lines[$i]="";
+    }    
+
+    # delete any code that is not compiled due to preprocessor
+    # directives
+    if (!$stack[$#stack]) {
+      #print STDERR "Deleting line: $lines[$i]" if ($debug);
+      $lines[$i]="";
+    }
+    
+  }
+#  print STDERR join('',@lines) if ($debug);
+}
+
+
+# this function converts the doxygen comments to Javadoc comments
+# arguments: 
+sub printDoc {
+  my $lastline=$_[0];
+  my $line=$_[1];
+
+  # 
+  while ($line > $lastline && $docs[$line] eq "") {
+    $line--;
+  }
+  my $end=$line;
+  while ($line > $lastline && $docs[$line] ne "") {
+    $line--;
+  }
+  print OUT "\n";
+  for (my $i=$line; $i <= $end; $i++) {
+    my $tmp=$docs[$i];
+    $tmp =~ s/\\endcode\b/<\/pre>/;
+    $tmp =~ s/\\code\b/<pre>/;
+    print OUT $tmp;
+  }
+
+}
+
+
+# creates the constructor of the Java class and defines some
+# additional methods
+# parameters: 
+# 0: output file handle
+# 1: indentation level
+# 2: name of constructor
+# 3: signature array
+sub writeConstructor() {
+  my $out=shift(@_);
+  my $indent="  " x shift(@_);
+  my $name=&cclass2jclass(shift(@_));
+  my @args=&translateSignature(@_);
+
+  print $out $indent."public $name(".join(', ',@args).") {\n";
+  if ($#args < 0) {
+    # default constructor
+    print $out $indent."  $idname=createObject();\n";
+    print $out $indent."}\n\n";
+    print $out $indent."protected native $idtype createObject();\n\n";
+  } elsif ($#args == 0 && $args[0] =~ /$name/) {
+    # copy constructor
+    $args[0] =~ /$name\s+(\w+)/;
+    print $out $indent."  copyObject($1.$idname);\n";
+    print $out $indent."}\n\n";
+    print $out $indent."private native void copyObject($idtype tmp);\n\n";
+    print $out $indent."protected $name($idtype nat) {\n";
+    print $out $indent."  copyObject(nat);\n";
+    print $out $indent."}\n\n";
+  } else {
+    # some other constructor
+    # TODO: parse constructor header to generate appropriate 
+    # call
+    my @cargs=@args;
+    print STDERR "Found non-std constructor: ".join(" ",@cargs)."\n";
+    foreach my $pair (@cargs) {
+      $pair =~ s/^.*\s+(\S+)$/\1/;
+    }
+    print $out $indent."  createObject(".join(', ',@cargs).");\n";
+    print $out $indent."}\n\n";
+    print $out $indent."private native $idtype createObject(".join(', ',@args).");\n\n";
+  }
+}
+
+
+# this function is given a method header
+sub parseMethod {
+  my $i=$_[0];
+  my $line=$lines[$i];
+  my ($header,$body);
+  while ($line =~ /,\s*$/) {
+    # next line belongs to the method header
+    $line.=$lines[++$i];
+  }
+  $line =~ s/[\r\n]+/ /;
+  # now we have the method header, but we might also have scooped up
+  # some of the body; check it
+  if ($line =~ /\)\s*(const)?\s*:/) {
+    # header of constructor, with beginning of member/superclass constructor 
+    $header=$`.")";
+    $body=":".$'; #'
+  } elsif ($line =~ /\)\s*(const)?\s*\{/) {
+    # plain header with beginning of body
+    $header=$`.")";
+    $body="{".$'; #'
+  } else {
+    $header=$line;
+    $body="";
+  }
+  print STDERR "Found method header: <<$header,$body>>\n" if ($debug);
+  if ($body ne "" || $header !~ /\)\s*(const)?\s*(=\s*0)?\s*;\s*$/) {
+    # not just a header, we need to parse a method body
+    my $tmp=$body;
+    # make sure that we have the beginning of method body
+    while ($tmp !~ /\{/) {
+      $tmp.=$lines[++$i];
+    }
+    my $k=0;
+    # now count opening and closing braces
+    my $line=$tmp;
+    while ($tmp =~ s/\{//) {
+      $k++;
+    }
+    while ($tmp =~ s/\}//) {
+      $k--;
+    }
+    # find end of method body
+    while ($k > 0) {
+      $tmp.=$lines[++$i];
+      $line.=$lines[$i];
+      while ($tmp =~ s/\{//) {
+        $k++;
+      }
+      while ($tmp =~ s/\}//) {
+        $k--;
+      }
+    }
+    $body=$line;
+    $body =~ s/;\s*$//;
+    print STDERR "found method body: $body\n" if ($debug);
+  }
+
+  $body =~ s/\s+/ /g;
+  $header =~ s/\s+/ /g;
+  return ($header,$body,$i);
+}
+
+sub translateSignature {
+  my @args=@_;
+  print STDERR "Signature: ".join('#',@args)."\n" if ($debug);
+  foreach my $v (@args) {
+    # delete default arguments
+    $v =~ s/=.*$//;
+    $v =~ /\b(\w+)\s*$/;
+    my $vname=$1;
+    my $vtype=$`;
+    $vtype=&cclass2jclass($vtype);
+    $v="$vtype $vname";
+  }  
+  print STDERR "New Signature: ".join('#',@args)."\n" if ($debug);
+  return @args;
+}  
+
+
+# write a Java method header
+sub printMethodHeader {
+  my $cls=$_[0];
+  my $header=$_[1];
+  my $level=$_[2];
+  my $out=$_[3];
+  my $lastline=$_[4];
+  my $i=$_[5];
+
+  my $isctor=($header =~ /\s+$cls\s*\(/);
+  my $isdtor=($header =~ /\s+~$cls\s*\(/);
+  # first, split method header into three things:
+  # 1. return type
+  # 2. method name
+  # 3. signature
+  $header =~ /(~?\w+)\s*\(/;
+  my $mname=$1;
+  $header =~ /$mname/;
+  my $rtype=$`; #`
+  my $sig=$'; #'
+  print STDERR "Method: name=$mname; rtype=$rtype\n" if ($debug);
+  $sig =~ s/^\s*\(//;
+  $sig =~ s/\)\s*(const)?\s*(=\s*0)?\s*;?\s*$//;
+  my @args=split(/\s*,\s*/,$sig);
+  if (!$isctor) {
+    # now we have each type-variable pair in the array
+    $rtype=&cclass2jclass($rtype);
+    print STDERR "Signature: ".join('#',@args)."\n" if ($debug);
+    @args=&translateSignature(@args);
+    if (!$isdtor) {
+      # write only if it is not the destructor
+      &printDoc($lastline,$i);
+      $lastline=$i;
+      my $special=0;
+      if ($mname eq "clone") {
+        # a clone method is better implemented in Java
+        $header="Object";
+        $special=1;        
+        $header="public Object $mname() { return new $cls($idname); }";
+      } elsif ($mname eq "getTypeName") {
+        $special=1;
+        # getTypeName method is better implemented in Java
+        $header="public String $mname() { return \"".$cls."\"; }";
+      }
+      
+      if (!$special) {
+        $header="public native $rtype $mname(".join(", ",@args).");";
+      }
+      print OUT ("  "x$level)."$header\n";
+    }
+  } else {
+    &writeConstructor($out,$level,$cls,@args);
+  }
+  # now collect method name
+  #$methods{$classes[$#classes]}.="!".$mname;
+  #$signatures{$classes[$#classes]."!".$mname}.="!".$line;
+  return $lastline;
+}
+
+sub parseHeader {
+  my $header=$_[0];
+  
+}
+
+
+
+sub cclass2jclass {
+  my $cls=$_[0];
+  return "" if ($cls =~ /^\s*$/);
+  # remove leading and trailing whitespace
+  $cls =~ s/^\s+//;
+  $cls =~ s/\s+$//;
+  # type replacement for strings
+  $cls =~ s/const char\s*\*/String/;
+  # replace C++ keywords that have no meaning in Java
+  $cls =~ s/\s*(\bvirtual\b|\bconst\b|\*|\&)\s*//g;
+  my $jcls=$c2j{$cls};
+  if ($jcls eq "") {
+    foreach my $i (@enums) {
+      if ($cls eq $i) {
+        $jcls="int";
+        last;
+      }
+    }
+    my @tmp=split('::',$cls);
+    foreach my $i (@tmp) {
+      $i=ucfirst($i);
+    }
+    $jcls=join('.',@tmp);
+    print STDERR "No Java class name found for $cls, using default $jcls\n";
+    $c2j{$cls}=$jcls;
+  }
+  return $jcls;
+}
+
+
+# parses an enum definition and generated the corresponding 
+# java definitions
+sub parseEnum {
+  my $name=$_[1];
+  my $i=$_[0];
+  my $out=$_[2];
+  my $k=0;
+  # todo: This does not work for nested classes
+  if ($name ne "") {
+    push(@enums,$name);
+  }
+  $i++;
+  print STDERR "Found enum $name in line $i\n" if ($debug);
+  while ($lines[$i] !~ /\}/) {
+    print STDERR "Scanning $lines[$i]\n" if ($debug);
+    if ($lines[$i] =~ /^\s*(\w+)(\s*=\s*(\d+))?/) {
+      print STDERR "Found enum value $1 in line $i\n" if ($debug);
+      $k=$2 if ($2 ne "");
+      print $out "  static final int $1 = $k;\n";
+      $k++;
+    }
+    $i++;
+  }
+  print STDERR "End of enum $name in line $i\n" if ($debug);
+  return $i;
+}
+
+
+# generates a Java file from the C++ header file that is
+# contained in @lines
+sub generateFile {
+
+  my $mode="private";
+  my @classes;
+  my @levels=(0);
+
+  my $br=0;
+  open(OUT, ">$_[0]") || die "Cannot open output file $_[0]";
+  print OUT "package $ltipackage;\n\n";
+  foreach my $p (sort(@imports)) {
+    print OUT "import $p.*;\n";
+  }
+  my $lastline=0;
+  for(my $i=0; $i <=$#lines; $i++) {
+    my $line=$lines[$i];
+    next if ($line =~ /^\s*$/);
+    my $tmp=$line;
+    print STDERR "Current line is $i: ".$line."\n" if ($debug);
+    my $oldbr=$br;
+    # first count braces so we keep track of the braces level
+    while ($tmp =~ s/\{//) {
+      $br++;
+    }
+    while ($tmp =~ s/\}//) {
+      $br--;
+    }
+    # check for end-of-class
+    print STDERR "{}: $br  ".join(" ",@levels)."\n" if ($debug);
+    if ($br < $levels[$#levels] && $oldbr > $br) {
+      print STDERR "*** Found end of class: $classes[$#classes]\n" if ($debug);
+      pop(@classes);
+      pop(@levels);
+      #print OUT ("  "x($br-1))."public void finalize() throws Throwable {\n";
+      #print OUT ("  "x($br-1))."  if (destroy) {\n";
+      #print OUT ("  "x($br-1))."    destroyObject();\n";
+      #print OUT ("  "x($br-1))."  }\n";
+      #print OUT ("  "x($br-1))."}\n";
+      my $indent="  "x($br-1);
+      print OUT "\n".$indent."  public void finalize() {\n";
+      print OUT $indent."    destroyObject($idname);\n";
+      print OUT $indent."  }\n\n";
+         
+      print OUT $indent."  protected native void destroyObject($idtype nat);\n\n";
+      print OUT $indent."}\n\n";
+    }
+    # check if we have a class declaration
+    if ($line =~ /^\s*class\s+(\w+)\s*(:\s*(public|private|protected)\s+(\S+))?/) {
+      # yes ; parse it
+      my $cls=$1;
+      # find and print documentary to this class
+      &printDoc($lastline,$i);
+      $lastline=$i;
+      # adapt class name to Java conventions
+      #if ($classes[$#classes] ne "") {
+      #  $cls="$classes[$#classes].$cls";
+      #}
+      if ($classes[$#classes] ne "") {
+        $outer{$cls}=$outer{$classes[$#classes]}.$classes[$#classes];
+      }
+      push(@classes,$cls);
+      push(@levels,$br);
+      $parent{$cls}=$4;
+      $parent{$cls}=$root if ($parent{$cls} eq "");
+      print STDERR "*** Found Class: $cls\n" if ($debug);
+      my $jcls=&cclass2jclass($cls);
+      my $jp=&cclass2jclass($parent{$cls});
+      print OUT ("  "x($br-2))."public class $jcls extends $jp {\n\n";
+    }
+    # determine protection level of class member
+    if ($line =~ /^\s*(public|protected|private):/) {
+      $mode=$1;
+    }
+    my $checkmethod=0;
+    # process only public methods
+    if ($mode eq "public") {
+      my $cls=$classes[$#classes];
+      # collect public method calls
+      my $rtype;
+      print STDERR "Checking for methods in $cls\n" if ($debug);
+      my $mname;
+      # check for constructors and descructors
+      if ($line =~ /^\s*(virtual\s*~?)?$cls\s*\(/) {
+        # found constructor
+        print STDERR "Found ctor/dtor: $cls\n" if ($debug);
+        $checkmethod=1;
+        $rtype="";
+        $mname=ucfirst($cls);
+      } elsif ($line =~ /^\s*(virtual|inline)?\s*(const\s)?\s*([\w:]+)\s*(&|\*)?\s*(\w+|operator\S\S?)\s*\(/) {
+        # first of all, check if previous line contains something
+        print STDERR "Prev. line is $lines[$i-1]\n" if ($debug);
+        if ($lines[$i-1] !~ /^\s*$/) {
+          $lines[$i]=$lines[$i-1].$line;
+          $lines[$i-1]="";
+        }
+        # found method
+        my $rtype=$3;
+        $mname=$5;
+        if ($rtype eq "char" && $4 eq "*") {
+          $rtype="string";
+        }
+        print STDERR "Found public method: $rtype $mname\n" if ($debug);
+        $checkmethod=1;
+      } elsif ($line =~ /\benum\s+(\w+)?\s*\{/) {
+        $i=&parseEnum($i,$1,*OUT{IO});
+        $br--;
+      }
+      # if there is something that can have a body, check to see
+      # if one is there and parse the signature
+      if ($checkmethod) {
+        # the end-of-method brace will be gobbled by the parseMethod function,
+        # so we need to adjust the brace counter
+        if ($line =~ /\{/) {
+          $br--;
+        }
+        # but only if the brace is not closed
+        if ($line =~ /\}/) {
+          $br++;
+        }
+        # find and print documentary to this class        
+        my ($header,$body);
+        ($header,$body,$i)=&parseMethod($i);
+        my $ttt=1;
+        do {
+        } while ($lines[$i+$ttt++] =~ /^\s*$/);
+        print STDERR "Line after method is ".($i+$ttt-1).": ".$lines[$i+$ttt-1]."\n" if ($debug);
+        if ($mname !~ /operator\S\S?/) {
+          $lastline=&printMethodHeader($cls,$header,$levels[$#levels]-1,
+                                       *OUT{IO}, $lastline,$i);
+        }
+      }
+    }
+    #print STDERR "Next line to parse is $i: ".$lines[$i+1]."\n" if ($debug);
+  }
+
+  close(OUT);
+}
+
+# this function compiles the generated Java file and generates the C++
+# file
+sub compileJavaFile {
+  my $file=$_[0];
+  my $dir=$file;
+  $dir =~ s/\/[^\/]+$//;
+  # create the class file and the C++ header file
+  system("cd $dir && make cd");
+  #system("cd $jniDir && make c");
+  # now we have both the header and the C++ implementation file
+}
+
+# this function patches the generated JNI C implementation file,
+# such that all functions actually call their LTIlib counterpart.
+sub patchCFile {
+  my $file=$_[0];
+  open(IN, "$file") || die "Cannot open C implementation file";
+  my @cpp=<IN>;
+  close(IN);
+  # type of return value
+  my $retype;
+  # name of function, looks always like
+  # Java_<package name>_<class name>_<method name>
+  my $funame;
+  foreach my $i (0..$#cpp) {
+    if ($cpp[$i] =~ /JNIEXPORT (\w+) JNICALL (\w+)/) {
+      $retype=$1;
+      $funame=$2;
+    }
+    if ($cpp[$i] =~ /^\/\/ insert variables in signature/) {
+      # insert variable names
+      $cpp[$i]="";
+      $i++;
+      $cpp[$i] =~ s/\((JNIEnv \*), (jobject)([,\)])/\1 env, \2 obj\3/;
+      # now: replace remaining variable names by names from original
+      # ltilib C++ file
+     
+      $i++;
+      # here, append interface code
+      if ($cpp[$i] =~ /insert your code/) {
+        $cpp[$i].="\n";
+      }
+
+      # generate return value
+      if ($retype ne "void") {
+        if ($retype eq "jstring") {
+        }
+      }          
+    }
+
+  }
+
+}
+
+
+&parseArgs();
+&readImportList($importfile);
+&readTransFile($transfile);
+&readFile($filenames[0]);
+&generateFile($outfile);
+if ($compile) {
+  &compileJavaFile($outfile);
+  &patchCFile($outfile);
+}
+

@@ -1,0 +1,31 @@
+#----------------------------------------------------------------
+# project ....: LTI Digital Image/Signal Processing Library
+# file .......: Makefile.cvs
+# authors ....: Pablo Alvarado, Jochen Wickel
+# organization: LTI, RWTH Aachen
+# creation ...: 29.10.99
+# revisions ..: $Id: Makefile.cvs,v 1.8 2004/06/02 09:51:57 sltilib Exp $
+#----------------------------------------------------------------
+
+all: configure
+
+configure: aclocal.m4  Makefile.in configure.in config.h.in
+	@echo "Calling autoconf..." ;\
+	autoconf ;\
+	chmod 750 configure
+
+config.h.in: configure.in acinclude.m4
+	@echo "Calling autoheader..." ;\
+	autoheader
+
+aclocal.m4: acinclude.m4 configure.in
+	@echo "Calling aclocal..." ;\
+	aclocal
+
+config: configure
+	@echo "Calling configure with default parameters..." ;\
+	./configure
+
+clean: 
+	@echo "Remove temporal files..." ;\
+	rm -f aclocal.m4 configure config.h.in

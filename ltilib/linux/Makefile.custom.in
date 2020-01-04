@@ -1,0 +1,439 @@
+# Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+# Lehrstuhl fuer Technische Informatik, RWTH-Aachen, Germany
+#
+# This file is part of the LTI-Computer Vision Library (LTI-Lib)
+#
+# The LTI-Lib is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License (LGPL)
+# as published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# The LTI-Lib is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with the LTI-Lib; see the file LICENSE.  If
+# not, write to the Free Software Foundation, Inc., 59 Temple Place -
+# Suite 330, Boston, MA 02111-1307, USA.
+#
+
+#----------------------------------------------------------------
+# project ....: LTI Digital Image/Signal Processing Library
+# file .......: Makefile.custom.in
+# authors ....: Pablo Alvarado
+# organization: LTI, RWTH Aachen
+# creation ...: 20.11.2003
+# revisions ..: $Id: Makefile.custom.in,v 1.4 2004/01/26 08:15:30 alvarado Exp $
+#----------------------------------------------------------------
+
+# 
+# The documentation of the targets, requirements and additional features of
+# this Makefile can be found in the Online documentation, in the Mainpage
+# under "Some Tips for the supported compilers".
+#
+# For the impatient these are the main targets:
+#
+# make all-release : compute the customized library and rtester for the
+#                    release version
+# make all-debug   : compute the customized library and dtester for the
+#                    debug version
+#
+
+# ---------------------------------------------------------------------------
+#                             General Settings
+
+# Name of the library to be used
+LIBNAME=custom
+
+# Name of the dependencies file for this project
+DEPFILE=DepCustom
+
+# List of LTI-Lib files
+LIBSRCS=customized.mk
+
+# ---------------------------------------------------------------------------
+
+
+# Compiler to be used
+CC = @CXX@
+LAPACK_LIBS = @LAPACK_LIBS@
+ifdef LAPACK_LIBS
+  LIBS = @LIBS@ @LAPACK_LIBS@ @BLAS_LIBS@ @F2C_LIBS@
+else
+  LIBS = @LIBS@ 
+endif
+PNGLIB = @PNGLIB@
+JPEGLIB = @JPEGLIB@
+INSTALL = @INSTALL@
+VERSION = @VERSION@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@/ltilib-$(VERSION)
+includedir = @includedir@/ltilib-$(VERSION)
+libdirlnk = @libdir@/ltilib
+includedirlnk = @includedir@/ltilib
+
+# Main tester source file
+TESTERFILE:=../tester/ltiTester.cpp
+
+# For new versions of gcc, <limits> already exists, but in older
+# versions a replacement is needed
+CC_MAJOR:=$(shell echo `$(CC) --version | sed -e 's/\..*//;'`)
+
+ifeq "$(CC_MAJOR)" "2"
+  VPATHADDON=:g++
+  CPUARCH = @_ac_cpuarch_gcc2@ -ftemplate-depth-35
+else
+  VPATHADDON=
+  CPUARCH = @_ac_cpuarch@
+endif
+
+# Files required in case there is no jpeg/png-lib available
+
+ifeq "$(JPEGLIB)" "1"
+  SRCIOJPEG=
+else
+  SRCIOJPEG =  $(wildcard ../src/io/jpeg/*.cpp)
+  VPATHJPEG=:../src/io/jpeg
+endif
+
+ifeq "$(PNGLIB)" "1"
+  SRCIOPNG=
+else
+  SRCIOPNG =  $(wildcard ../src/io/png/*.cpp) 
+  VPATHPNG=:../src/io/png
+endif
+
+ifdef LAPACK_LIBS
+  VPATHADDON += :../misc/lamath
+endif
+
+# Directories with source file code (.h and .cpp)
+VPATH:=../src/basics:../src/math:../src/imgProc:../src/ioBasics:../src/io$(VPATHJPEG)$(VPATHPNG):../src/viewer:../src/system:../src/classifiers:workbench:../tester$(VPATHADDON)
+
+# Destination directories for the debug, release and profiling versions of the
+# code
+
+DEBUGDIR  = ../obj/debug/
+RELEASEDIR = ../obj/release/
+PROFILEDIR = ../obj/profile/
+
+# Extra include directories and library directories for hardware specific stuff
+
+# check if file 'extrapaths.mk' exists
+EXTRAMK:=$(shell if [ -f extrapaths.mk ] ; then echo "yes" ; else echo "no" ; fi)
+
+ifeq "$(EXTRAMK)" "yes"
+  include extrapaths.mk
+else
+  EXTRACXXFLAGS=
+  EXTRAINCLUDEPATH=
+  EXTRALIBPATH=
+  EXTRALIBS=
+endif
+
+# Base directory of the library
+LTIBASE = @LTI_BASEDIR@
+
+# required for the newer gtk versions
+ifeq "x@gtk_lib@" "xyes"
+GTKINCLUDEPATH = $(shell gtk-config --cflags gthread)
+else
+GTKINCLUDEPATH = 
+endif
+
+# compiler flags
+CXXINCLUDE =  $(EXTRAINCLUDEPATH) -I$(PWD) $(patsubst %,-I%,$(subst :, ,$(VPATH))) $(LAPACKINCLUDE) $(GTKINCLUDEPATH)
+
+# the sources (.h and .cpp)
+
+# Workbench files
+CPPWORKBE = $(wildcard workbench/*.cpp)
+DEBWORKBE = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPWORKBE)))
+RELWORKBE = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPWORKBE)))
+PFLWORKBE = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPWORKBE)))
+
+# check the desired sources for the customized library
+CUSTOMMK:=$(shell if [ -f $(LIBSRCS) ] ; then echo "yes" ; else echo "no" ; fi)
+
+ifeq "$(CUSTOMMK)" "yes"
+  CPPALL:=$(shell cat $(LIBSRCS))
+else
+  CPPBASICS = $(wildcard ../src/basics/*.cpp)
+  CPPMATH = $(wildcard ../src/math/*.cpp)
+  CPPIMGPROC = $(wildcard ../src/imgProc/*.cpp)
+  CPPIO = $(wildcard ../src/io/*.cpp) $(CPPIOPNG) $(CPPIOJPEG)
+  CPPIOBASICS = $(wildcard ../src/ioBasics/*.cpp)
+  CPPVIEWER = $(wildcard ../src/viewer/*.cpp)
+  CPPSYSTEM = $(wildcard ../src/system/*.cpp)
+  CPPCLASSI = $(wildcard ../src/classifiers/*.cpp)  
+ifdef LAPACK_LIBS
+  CPPLAMATH = $(wildcard ../misc/lamath/*.cpp)
+else
+  CPPLAMATH =
+endif
+  CPPALL = $(CPPBASICS) $(CPPMATH) $(CPPIMGPROC) $(CPPIO) $(CPPVIEWER) \
+           $(CPPSYSTEM) $(CPPCLASSI) $(CPPLAMATH) $(CPPIOBASICS)
+endif
+
+
+# only the implementation sources (.cpp)
+
+# object files for the debug version
+DEBALL = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPALL)))
+
+# object files for the release version
+RELALL = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPALL)))
+
+# object files for the profile version
+PFLALL = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPALL)))
+
+# for a description of the -Dxxxx options see 
+# 'info libc' -> Feature Test Macros:: How to control what names are defined. 
+
+CXXFLAGSDEB = -c -g $(CPUARCH) -Wundef -Wmissing-prototypes -Wwrite-strings -Wall -ansi -D_BSD_SOURCE -D_XOPEN_SOURCE=500 -D_REENTRANT -D_DEBUG @OSCXXOPTS@
+CXXFLAGSREL = -c -O3 $(CPUARCH) -Wundef -Wmissing-prototypes -Wwrite-strings -Wall -ansi -D_BSD_SOURCE -D_XOPEN_SOURCE=500 -D_REENTRANT -DNDEBUG @OSCXXOPTS@
+CXXFLAGSPFL = -c -g $(CPUARCH) -p -Wundef -Wmissing-prototypes -Wwrite-strings -Wall -ansi -D_BSD_SOURCE -D_XOPEN_SOURCE=500 -D_REENTRANT -D_DEBUG @OSCXXOPTS@
+
+# the right version
+# PROFILE = -p
+PROFILE =
+
+# This flag controls the output of an error message to the std::err stream
+# when an exception is thrown.  This simplifies the debugging process and
+# might be necessary if you work with Java.  
+# Just define the symbol DEBUGEXC symbol if you want to make use of this
+# feature.
+# An preferable alternative is using the "extrapaths.mk" file to define
+# this symbol in the compilation process.  This way, you can preserve your
+# settings after a "./configure" :
+# 
+# EXTRACXXFLAGS=-D_DEBUG_EXCEPTION
+
+#DEBUGEXC =-D_DEBUG_EXCEPTION
+DEBUGEXC = 
+
+GCCD = $(CC) $(CXXFLAGSDEB) $(EXTRACXXFLAGS) $(DEBUGEXC) $(CXXINCLUDE)
+GCCR = $(CC) $(CXXFLAGSREL) $(EXTRACXXFLAGS) $(DEBUGEXC) $(CXXINCLUDE)
+GCCP = $(CC) $(CXXFLAGSPFL) $(EXTRACXXFLAGS) $(DEBUGEXC) $(CXXINCLUDE)
+
+# linker flags
+
+LINKDIRD = -L. -L$(DEBUGDIR) 
+LINKDIRR = -L. -L$(RELEASEDIR) 
+LINKDIRP = -L. -L$(PROFILEDIR) 
+
+LNALLD = $(CC) $(LINKDIRD) $(shell gtk-config --libs gthread) -o
+LNALLR = $(CC) $(LINKDIRR) $(shell gtk-config --libs gthread) -o
+LNALLP = $(CC) $(LINKDIRP) -p $(shell gtk-config --libs gthread) -o
+
+# implicit rules for the debug, release and profile version
+
+$(DEBUGDIR)%.o : %.cpp
+	@echo "Compiling debug version of $<" ; \
+        $(GCCD) $< -o $(DEBUGDIR)$(notdir $@)
+
+$(RELEASEDIR)%.o : %.cpp
+	@echo "Compiling release version of $<" ; \
+        $(GCCR) $< -o $(RELEASEDIR)$(notdir $@)
+
+$(PROFILEDIR)%.o : %.cpp
+	@echo "Compiling profile version of $<" ; \
+        $(GCCP) $< -o $(PROFILEDIR)$(notdir $@)
+
+# the rules
+
+default: @LIB_DEBUG@ @LIB_RELEASE@
+
+all: all-debug all-release
+
+../bin/tester: ../bin/dtester
+	@echo "'tester' is deprecated.  Please use: " ; \
+	echo  "  'dtester' for the debug version," ; \
+	echo  "  'rtester' for the release version," ; \
+	echo  "  'ptester' for the profile version." ; \
+	if [ -f ../bin/tester ]; then rm ../bin/tester ; fi; \
+	ln -s ../bin/dtester ../bin/tester
+
+../bin/dtester: ../lib/lib$(LIBNAME)d.a $(DEBUGDIR)main.o $(DEBUGDIR)ltiTester.o $(DEBWORKBE)
+	@echo "Linking ../bin/dtester" ; \
+	$(LNALLD) ../bin/dtester $(DEBUGDIR)main.o $(DEBUGDIR)ltiTester.o $(DEBWORKBE) $(EXTRALIBS) $(LIBS) $(EXTRALIBPATH) ../lib/lib$(LIBNAME)d.a
+
+../bin/rtester: ../lib/lib$(LIBNAME)r.a $(RELEASEDIR)main.o $(RELEASEDIR)ltiTester.o $(RELWORKBE)
+	@echo "Linking ../bin/rtester" ; \
+	$(LNALLR) ../bin/rtester $(RELEASEDIR)main.o $(RELEASEDIR)ltiTester.o $(RELWORKBE) $(EXTRALIBS) $(LIBS) $(EXTRALIBPATH) ../lib/lib$(LIBNAME)r.a
+
+../bin/ptester: ../lib/lib$(LIBNAME)p.a $(PROFILEDIR)main.o $(PROFILEDIR)ltiTester.o $(PFLWORKBE)
+	@echo "Linking ../bin/ptester" ; \
+	$(LNALLP) ../bin/ptester $(PROFILEDIR)main.o $(PROFILEDIR)ltiTester.o $(PFLWORKBE) $(EXTRALIBS) $(LIBS) $(EXTRALIBPATH) ../lib/lib$(LIBNAME)p.a
+
+tester: ../bin/tester
+dtester: ../bin/dtester
+rtester: ../bin/rtester
+ptester: ../bin/ptester
+
+bins: ../bin/rtester ../bin/dtester
+
+libsr:	../lib/lib$(LIBNAME)r.a 
+libsd:	../lib/lib$(LIBNAME)d.a 
+libsp:	../lib/lib$(LIBNAME)p.a
+
+libr:	../lib/lib$(LIBNAME)r.a
+libd:	../lib/lib$(LIBNAME)d.a
+libp:	../lib/lib$(LIBNAME)p.a
+
+dep:
+	@echo "Searching for dependencies (this will take a while)..."
+	@$(CC) -MM $(CXXINCLUDE) $(CPPALL) $(CPPWORKBE) $(TESTERFILE) > $(DEPFILE)
+	@echo "  Generating dependencies for debug version..."
+	@sed -e "s/^\([a-zA-Z]\)/..\/obj\/debug\/\1/" $(DEPFILE) > $(DEPFILE).deb
+	@echo "  Generating dependencies for release version..."
+	@sed -e "s/^\([a-zA-Z]\)/..\/obj\/release\/\1/" $(DEPFILE) > $(DEPFILE).rel
+	@echo "  Generating dependencies for profile version..."
+	@sed -e "s/^\([a-zA-Z]\)/..\/obj\/profile\/\1/" $(DEPFILE) > $(DEPFILE).pfl
+
+	@rm $(DEPFILE)
+	@cat $(DEPFILE).deb $(DEPFILE).rel $(DEPFILE).pfl > $(DEPFILE)
+	@rm $(DEPFILE).rel $(DEPFILE).deb $(DEPFILE).pfl
+	@echo "Ready."
+
+all-debug: ../lib/lib$(LIBNAME)d.a ../bin/dtester
+
+all-release: ../lib/lib$(LIBNAME)r.a ../bin/rtester
+
+all-profile: ../lib/lib$(LIBNAME)p.a ../bin/ptester
+
+clean:
+	rm -fv ../bin/core* ../bin/tester ../bin/rtester ../bin/dtester ../bin/ptester $(DEBUGDIR)*.o $(RELEASEDIR)*.o $(PROFILEDIR)*.o *.o
+
+clean-libs: clean
+	rm -fv ../lib/st* ../lib/lib*.a
+
+clean-all:
+	@echo "Removing files..." ; \
+        echo "  removing obj, core and binary files..." ; \
+        rm -f ../bin/core* ../bin/tester ../bin/rtester ../bin/dtester ../bin/ptester $(DEBUGDIR)*.o $(RELEASEDIR)*.o $(PROFILEDIR)*.o ../lib/lib$(LIBNAME)*.a *.o ; \
+        echo "  removing latex doc files..." ; \
+        find ../doc/latex -type f -maxdepth 1 -exec rm -vf {} \; ; \
+        echo "  removing html doc files..." ; \
+        find ../doc/html -maxdepth 1 -type f -name '*_*' -exec rm -f {} \; ; \
+	rm -fv ../doc/ltilib.tag ; \
+        echo "  removing emacs backup files..." ; \
+        find $$PWD/../ \( -name '*\~' -or -name '\#*' \) -exec rm -f {} \; ; \
+        echo "  removing other automatic created backup files..." ; \
+        find $$PWD/../ \( -name '\.\#*' -or -name '\#*' \) -exec rm -f {} \; ;\
+        rm -fv nohup.out ; \
+        rm -fv ../lib/st* ; \
+	rm -fr autom4te.cache ; \
+        find ../linux -type f -name 'core*' -exec rm -fv {} \; ; \
+	find ../ -type d -name .xvpics -exec rm -frv {} \; ; \
+	echo "  cleaning examples..." ; \
+	make -f ../examples/Makefile -C ../examples clean-all > /dev/null 2>&1; \
+        echo "Ready."
+
+distclean: clean-all 
+	@rm -fv Makefile.custom $(DEPFILE)
+
+install: @LIB_DEBUG@ @LIB_RELEASE@
+	@echo "Creating directories."
+	@$(INSTALL) -d $(bindir)
+	@$(INSTALL) -d $(libdir)
+	@$(INSTALL) -d $(includedir)
+	@echo "Updating links."
+	@rm -f $(libdirlnk) $(includedirlnk)
+	@ln -s $(libdir) $(libdirlnk)
+	@ln -s $(includedir) $(includedirlnk)
+	@echo "Installing LTI-Lib include files in $(includedir)."
+	@cp $(HEADERALL) $(includedir)
+	@chmod 644 $(includedir)/*
+	@echo "Installing libraries in $(libdir)."
+	@if test "x@LIB_DEBUG@" != "x" ; then \
+	  find ../lib -name \*d.a -exec cp {} $(libdir) \; ;\
+	fi
+	@if test "x@LIB_RELEASE" != "x" ; then \
+	  find ../lib -name \*r.a -exec cp {} $(libdir) \; ;\
+	fi
+	@chmod 644 $(libdir)/*
+	@echo "Installing configuration script in $(bindir)."
+	@$(INSTALL) lti-config $(bindir)
+
+uninstall:
+	rm -f $(libdirlnk) $(includedirlnk)
+	rm -fr $(includedir)
+	rm -fr $(libdir)
+	rm -f $(bindir)/lti-config
+
+# complete library 
+../lib/lib$(LIBNAME)d.a: $(DEBALL) $(LIBSRCS)
+	@echo "Linking debug version of lib$(LIBNAME) ($@)" ; \
+        ar rs ../lib/lib$(LIBNAME)d.a $(DEBALL)
+
+../lib/lib$(LIBNAME)r.a: $(RELALL) $(LIBSRCS)
+	@echo "Linking release version of lib$(LIBNAME) ($@)" ; \
+        ar rs ../lib/lib$(LIBNAME)r.a $(RELALL)
+
+../lib/lib$(LIBNAME)p.a: $(PFLALL) $(LIBSRCS)
+	@echo "Linking profile version of lib$(LIBNAME) ($@)" ; \
+        ar rs ../lib/lib$(LIBNAME)p.a $(PFLALL)
+
+# the only tester source files:
+$(DEBUGDIR)main.o: ../tester/main.cpp ../tester/ltiTester.h ../src/basics/ltiException.h
+	@echo "Compiling debug version of $<" ; \
+	$(GCCD) ../tester/main.cpp -o $(DEBUGDIR)main.o
+
+$(DEBUGDIR)ltiTester.o: $(TESTERFILE) ../tester/ltiTester.h $(HEADERALL)
+	@echo "Compiling debug version of $<" ; \
+	$(GCCD) -x c++ $(TESTERFILE) -o $(DEBUGDIR)ltiTester.o
+
+$(RELEASEDIR)main.o: ../tester/main.cpp ../tester/ltiTester.h ../src/basics/ltiException.h
+	@echo "Compiling release version of $<" ; \
+	$(GCCR) ../tester/main.cpp -o $(RELEASEDIR)main.o
+
+$(RELEASEDIR)ltiTester.o: $(TESTERFILE) ../tester/ltiTester.h $(HEADERALL) 
+	@echo "Compiling release version of $<" ; \
+	$(GCCR) -x c++ $(TESTERFILE) -o $(RELEASEDIR)ltiTester.o
+
+$(PROFILEDIR)main.o: ../tester/main.cpp ../tester/ltiTester.h ../src/basics/ltiException.h
+	@echo "Compiling profile version of $<" ; \
+	$(GCCP) ../tester/main.cpp -o $(PROFILEDIR)main.o
+
+$(PROFILEDIR)ltiTester.o: $(TESTERFILE) ../tester/ltiTester.h $(HEADERALL)
+	@echo "Compiling profile version of $<" ; \
+	$(GCCP) -x c++ $(TESTERFILE) -o $(PROFILEDIR)ltiTester.o
+
+debugmk:
+	@echo "VPATH: $(VPATH)" ; \
+	echo "Compiler: $(CC) (Major version $(CC_MAJOR))" ; \
+	echo "LTIBASE = $(LTIBASE)" ; \
+	echo "CPUARCH = $(CPUARCH)" ; \
+        echo "LAPACKLIB = $(LAPACKLIB)" ; \
+        echo "CXXINCLUDE = $(CXXINCLUDE)" \;
+	echo "LNALLD = $(LNALLD)" ; \
+	echo "LNALLR = $(LNALLR)" ; \
+	echo "LNALLP = $(LNALLP)" ; \
+	echo "GCCD = $(GCCD)" ; \
+	echo "GCCR = $(GCCR)" ; \
+	echo "GCCP = $(GCCD)" ; \
+	echo "EXTRAMK = $(EXTRAMK)" ; \
+	echo "CUSTOMMK = $(CUSTOMMK)" ; \
+	echo "CPPALL = $(CPPALL)"
+
+customize:
+	@echo "Customizing the LTI-Lib." ; \
+	echo "Output library files will be: lib$(LIBNAME)[drp].a" ; \
+	echo "Searching for dependencies" ; \
+	cd ../ ; \
+	WRKDIR="$$PWD" ; \
+	cd tools/ltiCustomLib ; \
+	./ltiCustomLib.pl -e ../../tester/ltiTester.cpp ../../linux/workbench/*.cpp > ../../linux/$(LIBSRCS) ; \
+	cd ../../linux ; \
+	echo "Ready."
+
+# check if Dependencies file exists, and in that case, include it
+CHKDEPS:=$(shell if [ -f $(DEPFILE) ] ; then echo "yes" ; else echo "no" ; fi)
+ifeq "$(CHKDEPS)" "yes"
+  include $(DEPFILE)
+endif

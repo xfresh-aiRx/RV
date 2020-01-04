@@ -1,0 +1,695 @@
+#!/usr/bin/perl
+#
+# Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+# Lehrstuhl fuer Technische Informatik, RWTH-Aachen, Germany
+#
+# This file is part of the LTI-Computer Vision Library (LTI-Lib)
+#
+# The LTI-Lib is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License (LGPL)
+# as published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# The LTI-Lib is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with the LTI-Lib; see the file LICENSE.  If
+# not, write to the Free Software Foundation, Inc., 59 Temple Place -
+# Suite 330, Boston, MA 02111-1307, USA.
+#
+#   project ....: LTI Digital Image/Signal Processing Library
+#   file .......: ltiGenerator
+#   authors ....: Pablo Alvarado
+#   organization: LTI, RWTH Aachen
+#   creation ...: 17.4.2000
+#   revisions ..: $Id: ltiGenerator,v 1.21 2003/11/24 07:00:38 alvarado Exp $
+
+$genVersion = '0.01';
+
+print "\nFunctor Files Generator for the LTILib\n";
+print "(c) 2000 Lehrstuhl für Technische Informatik, RWTH-Aachen\n\n";
+
+# -----------------------------------------------------------------------
+#  Default values
+# -----------------------------------------------------------------------
+
+$tValues  = "ltiTemplateValues.txt";  #values file (variable contents here)
+$tHeader  = "ltiTemplate.h";          #template for the header files
+$tSource  = "ltiTemplate.cpp";        #template for the source files
+
+$dest     = "./";                     #path for the generated files
+$template = "./";                     #path for the
+
+%varTable = ();                       #list of variable/value pairs
+%parList  = ();                       #list of parameters: type/name;
+%parCopy  = ();                       #list of copy method for the parameters
+@applyTypes = ();                     #list of types for which apply methods
+@includes = ();                       #list of the files to be included 
+@theLines = ();                       # should exist.
+$theLineNumber = 0;
+
+$debug    = 1;                        #for the verbose mode
+
+# -----------------------------------------------------------------------
+#  Display Help
+# -----------------------------------------------------------------------
+
+sub printHelp {
+    print "Usage ltiGenerator [-h] [--help] [-v] [-q] [--version] \n";
+    print "                   [-t templates_path] [-d destination_path]\n";
+    print "                   [-f templates_file]\n";
+    print "Options: \n";
+    print "-t   Path of the template files \n";
+    print "-f   Name of the template files (without .h/.cpp) \n";
+    print "-d   Path for the generated files \n";
+    print "-h   This help \n";
+    print "-v   Verbose: display lots of information! \n";
+    print "-q   Quiet Mode \n";
+    print "--version  Display Version \n\n";
+}
+
+# get next token.  The token separators are '=' , ',' , \s , \n , '{',
+# '}', ';'
+# comments are considered tokens, i.e. // xxxx is a token until the
+# end of line!  The tokens are taken from $theLines
+
+sub getNextToken {
+    local ($aLine,@theTerms,@tmpLine);
+
+    do {
+        # find first non empty line!
+        while (($#theLines>=0) && ($theLines[0] =~ /^\s*(\/\/)?\s*$/)) {
+            # empty line?
+            shift @theLines;
+            $theLineNumber++;
+        }
+        
+        if ($#theLines < 0) {
+            return "";
+        }
+        
+        $tmpLine = $theLines[0];
+        # separate the tokens
+        @theTerms = split /(=|;|\{|\}|,|\s|\/\/)/,$tmpLine;
+        
+        while ($theTerms[0] =~ /^\s*$/) {
+            shift @theTerms;
+        }
+    } until ($#theTerms >= 0);
+
+    if ($theTerms[0] =~ /\/\//) {
+        $tmpLine =~ /^\s*(\/\/.*)\s*$/;
+        $aLine = $1;
+        shift @theLines;
+        $theLineNumber++;
+    } else {
+        $aLine = shift @theTerms;
+        $tmpLine = join '',@theTerms;
+        $theLines[0] = $tmpLine;
+    }
+
+    $aLine =~ /^\s*(.*)\s*$/;
+    $aLine = $1;
+
+    return $aLine;
+}
+
+sub readCommaList {
+    local ($counter,$aLine,@theList,@theTerms);
+
+    $theList = $_[0];   # reference to the first parameter
+
+    # take only the data after the '='
+    $counter = 0;
+    $theLines[$counter] =~ /^.*=\s*(.*)\s*$/;
+    $aLine = $1;
+    # no comments!
+    $aLine =~ /^([^\/]*)(\/\/)?/;
+    if ("$2" ne "") {
+        $aLine = $1;
+    }
+    # while not next key/value line
+    while (($aLine !~ /^.*=.*$/) && ($counter <= $#theLines)) {
+
+        @theTerms = split /\s*,\s*/,$aLine;
+        push @$theList,@theTerms;
+        $counter++;
+        $aLine = $theLines[$counter];
+        # remove the comments!
+        $aLine =~ /^([^\/]*)(\/\/)?/;
+        if ("$2" ne "") {
+            $aLine = $1;
+        }
+    }
+    
+    # check for commata
+    $aLine = join ',',@$theList;
+    $aLine =~ s/\s//g;   #eliminate spaces
+    $aLine =~ s/,,*/,/g; #eliminate double commata
+    @$theList = split /\s*,\s*/,$aLine;
+
+    # remove the parsed lines from theLines
+    if ($counter > 1) {
+        splice @theLines,0,($counter-1);
+        $theLineNumber+=$counter;
+    }
+    
+    $aLine = 1 + $#$theList;
+
+    print "The list has $aLine elements: @$theList\n" if ($debug);
+};
+
+sub parseParameters {
+    local($parlevel,$counter,$aLine,$theType,$theVarName,$theCopyModus);
+    $parlevel=0;
+    $counter=0;
+
+    # // search for the begin!
+    do {
+        $aLine = getNextToken();
+        if ("$aLine" eq "") {
+            print STDERR "Syntax Error: incorrect parameters syntax!\n";
+            exit 1;
+        };
+    } until ($aLine =~ /^\{/);
+
+    while ($aLine !~ /^\}/) {
+        $aLine = &getNextToken();
+        if ($aLine =~ /^\/\/\s*(\w+)/) {
+            $theCopyModus = $1;
+            
+            $parCopy{"$theVarName"} = $theCopyModus;
+        } elsif ($aLine !~ /^\}/) {
+            $theType = $aLine;
+            $theVarName = &getNextToken();
+            $aLine = &getNextToken();
+
+            # check in the data!
+            $parList{"$theVarName"} = $theType;
+
+            if ($aLine !~ /^;/) {
+                print STDERR "Syntax Error at Line $theLineNumber. Missing ;";
+                exit 1;
+            }
+        }
+    }
+};
+
+sub evalTokenHeader {
+    local ($theToken,$key,$value,$counter);
+
+    @theTerms = ();
+    $theToken = $_[0];
+
+    if ($theToken eq "rev") {
+        $theTerms[0]="rev"."isions \.\.: \$I"."d: $varTable{'filename'}\.h,v \$";
+    } elsif ($theToken eq "parameters") {
+        $theTerms[0] = "";
+        $counter=1;
+        while (($key, $value) = each(%parList))
+        {
+            $theTerms[$counter] = "";
+            $counter++;
+            $theTerms[$counter] = "      /**";
+            $counter++;
+            $theTerms[$counter] = "       * TODO: document $key";
+            $counter++;
+            $theTerms[$counter] = "       */";
+            $counter++;
+            $theTerms[$counter] = "      $value $key;";
+            $counter++;
+        }
+    } elsif ($theToken eq "includes") {
+        $theTerms[0]="";
+        foreach $key (@includes) {
+            push @theTerms,"\#include \"$key\"";
+        }
+        push @theTerms,"\/\/ TODO: Check this include to parent class: ";
+        push @theTerms,"\#include \"$varTable{'parClassHeader'}\.h\"";
+    } elsif ($theToken eq "writeparams") {
+        $theTerms[0] = "";
+        $counter=1;
+        while (($key,$value) = each(%parList)) {
+            $theTerms[$counter] = "          lti::write(handler,\"$key\",$key);";
+            $counter++;
+        }
+    } elsif ($theToken eq "readparams") {
+        $theTerms[0] = "";
+        $counter=1;
+        while (($key,$value) = each(%parList)) {
+            $theTerms[$counter] = "          lti::read(handler,\"$key\",$key);";
+            $counter++;
+        }
+    } elsif ($theToken eq "parametersConstructor") {
+        $theTerms[0] = "";
+        $counter=1;
+        while (($key, $value) = each(%parList)) {
+            $theTerms[$counter] = "        $key = $value();";
+            $counter++;
+        } 
+    } elsif ($theToken eq "copyParameters") {
+        $theTerms[0] = "";
+        $counter=1;
+        while (($key, $value) = each(%parList)) {
+            if ($parCopy{$key} eq "") {
+                $theTerms[$counter] = "        $key = other.$key;";
+            } else {
+                $theTerms[$counter] = "        $key.$parCopy{$key}(other.$key);";
+            }
+            $counter++;
+        }
+    } elsif ($theToken eq "filename") {
+        $theTerms[0]=$varTable{$theToken}."\.h";
+    } elsif ($theToken eq "apply_members") {
+        $theTerms[0]="";
+        foreach $key (@applyTypes) {
+            push @theTerms,"    /**";
+            push @theTerms,"     * operates on the given %parameter.";
+            push @theTerms,"     * \@param srcdest $key with the source data.  The result";
+            push @theTerms,"     *                 will be left here too.";
+            push @theTerms,"     * \@return true if apply successful or false otherwise.";
+            push @theTerms,"     */";
+           
+            push @theTerms,"    bool apply($key\& srcdest) const;\n";
+        }
+        foreach $key (@applyTypes) {
+            push @theTerms,"    /**";
+            push @theTerms,"     * operates on a copy of the given %parameters.";
+            push @theTerms,"     * \@param src $key with the source data.";
+            push @theTerms,"     * \@param dest $key where the result will be left.";
+            push @theTerms,"     * \@return true if apply successful or false otherwise.";
+            push @theTerms,"     */";
+           
+            push @theTerms,"    bool apply(const $key\& src,$key\& dest) const;\n";
+        }
+    } elsif ("$varTable{$theToken}" eq "") {
+        $theTerms[0] = "TODO: $theToken";
+    } else {
+        $theTerms[0] = $varTable{$theToken};
+    }
+    
+    return @theTerms;
+}
+
+sub evalTokenSource {
+    local ($theToken,$key,$value,$counter,$tmp);
+
+    @theTerms = ();
+    $theToken = $_[0];
+
+    if ($theToken eq "rev") {
+        $theTerms[0]="rev"."isions \.\.: \$I"."d: $varTable{'filename'}\.cpp,v \$";
+    } elsif ($theToken eq "parameters") {
+        $theTerms[0] = "";
+        $counter=1;
+        while (($key, $value) = each(%parList)) {
+            if ($parCopy{$key} eq "") {
+                $theTerms[$counter] = "      $key = other.$key;";
+            } else {
+                $theTerms[$counter] = "      $key.$parCopy{$key}(other.$key);";
+            }
+            $counter++;
+        }
+    } elsif ($theToken eq "writeparams") {
+        $theTerms[0] = "";
+        $counter=1;
+        while (($key,$value) = each(%parList)) {
+            $theTerms[$counter] = "      lti::write(handler,\"$key\",$key);";
+            $counter++;
+        }
+    } elsif ($theToken eq "readparams") {
+        $theTerms[0] = "";
+        $counter=1;
+        while (($key,$value) = each(%parList)) {
+            $theTerms[$counter] = "      lti::read(handler,\"$key\",$key);";
+            $counter++;
+        }
+    } elsif ($theToken eq "parametersConstructor") {
+        $theTerms[0] = "";
+        $counter=1;
+        while (($key, $value) = each(%parList)) {
+            $theTerms[$counter] = "    $key = $value();";
+            $counter++;
+        } 
+    } elsif ($theToken eq "includes") {
+        $theTerms[0]="\#include \"$varTable{'filename'}\.h\"";
+    } elsif ($theToken eq "filename") {
+        $theTerms[0]=$varTable{$theToken}."\.cpp";
+    } elsif ($theToken eq "apply_members") {
+        $theTerms[0]="";
+        $tmp = $varTable{'classname'};
+        foreach $key (@applyTypes) { 
+            push @theTerms,"  // On place apply for type $key!";
+            push @theTerms,"  bool ".$tmp."::apply($key\& srcdest) const \{";
+            push @theTerms,"  // TODO: Implement your code HERE! \n";
+            push @theTerms,"    return false;";
+            push @theTerms,"  \};\n";
+        }
+        foreach $key (@applyTypes) {
+            push @theTerms,"  // On copy apply for type $key!";
+            push @theTerms,"  bool ".$tmp."::apply(const $key\& src,$key\& dest) const {";
+            push @theTerms,"  // TODO: Implement your code HERE! \n";
+            push @theTerms,"    return false;";
+            push @theTerms,"  \};\n";
+        }
+    } elsif ("$varTable{$theToken}" eq "") {
+        $theTerms[0] = "TODO: $theToken";
+    } else {
+        $theTerms[0] = $varTable{$theToken};
+    }
+    
+    return @theTerms;
+}
+
+
+# -----------------------------------------------------------------------
+#  main code
+# -----------------------------------------------------------------------
+
+# parse command line arguments
+
+$ai=1;
+while ($ai && $#ARGV >= 0) {
+    if ($ARGV[0] =~ /^-/) {
+        if ($ARGV[0] =~ /^-v/) {
+            $debug=1;
+        } elsif ($ARGV[0] =~ /^-q/) {
+            $debug=0;
+        } elsif ($ARGV[0] =~ /^-[h?]/ || $ARGV[0] =~ /^--[h?]/) {
+            &printHelp();
+            exit 0;
+        } elsif ($ARGV[0] =~ /^--version/) {
+            print "Version: $genVersion \n\n";
+            exit 0;
+        } elsif ($ARGV[0] =~ /^-t/) {
+            $template = $ARGV[1];
+            shift @ARGV;
+        } elsif ($ARGV[0] =~ /^-f/) {
+            $tHeader = $ARGV[1].".h";
+            $tSource = $ARGV[1].".cpp";
+            shift @ARGV;
+        } elsif ($ARGV[0] =~ /^-d/) {
+            $dest = $ARGV[1];
+            shift @ARGV;
+        } else {
+            print STDERR "Warning: illegal argument $ARGV[0], ignoring \n";
+        }
+        shift @ARGV;;
+    } else {
+        $ai=0;
+    }
+}
+
+# check templates path:
+if ($template !~ /^.+\/\s*$/) { #ends with '/' ?
+    $template =~ s/^(.+)\s*$/$1\//;
+} 
+
+if ($debug) {
+    print "Path to template files: $template \n";
+}
+
+# check destination path:
+if ($dest !~ /^.+\/\s*$/) { #ends with '/' ?
+    $dest =~ s/^(.+)\s*$/$1\//;
+}
+
+if ($debug) {
+    print "Path for the destination files: $dest \n";
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#  Parse template values
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+$settingParams  = 0;
+$settingApplys  = 0;
+$settingInclude = 0;
+
+open(VALUES,$template.$tValues) || die "cannot find file $template$tValues\n";
+@theLines = <VALUES>; # the values file!
+close(VALUES);
+
+$theLineNumber = 0;
+while ($#theLines >= 0) {
+    $aLine = $theLines[0];
+    
+    chop $aLine;
+
+    # ignore comments and empty lines    
+    if (($aLine =~ /^\s*\/\//) || ($aLine =~ /^\s*$/)) {
+        shift @theLines;
+        $theLineNumber++;
+        next;
+    }
+   
+    if ($aLine =~ /^\s*includes/) {
+        # the include files
+        &readCommaList(\@includes);
+    } elsif ($aLine =~ /^\s*parameters/) {
+        # the parameters
+        &parseParameters();
+    } elsif ($aLine =~ /^\s*applytype/) {
+        # the apply types
+        &readCommaList(\@applyTypes);
+    } elsif ($aLine =~ /^\s*(\w*)\s*=\s*(.*)$/) {
+        $theKey = "$1";
+        $theValue = "$2";
+        $theValue =~ /^([^\/]*)\s*(\/\/)?/;
+        if ("$2" ne "") {
+            $theValue = $1;
+        }
+        $varTable{$theKey}=$theValue;
+        if ($debug) {
+            print "$theKey -> $theValue\n";
+        }
+    }
+    shift @theLines;
+    $theLineNumber++;
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#  Parse template values
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+while (($theKey, $theValue) = each(%varTable))
+{
+    if ($theKey eq "date") {
+        if ($theValue eq "") {
+            @theTerms = gmtime(time);
+            $theTerms[4]++;
+            $varTable{$theKey}=$theTerms[3].".".$theTerms[4].".".($theTerms[5] + 1900);
+            if ($debug) {
+                print "$theKey -> $varTable{$theKey}\n";
+            }
+        }
+    } elsif ($theKey eq "classname") {
+        # it must not begin with lti
+        if ($theValue =~ m/^lti(.*)$/i) {
+            $theValue = $1;
+            $varTable{$theKey}=$theValue;
+            if ($debug) {
+                print "$theKey -> $varTable{$theKey}\n";
+            }
+        }
+    } elsif ($theKey eq "filename") {
+        if ($theValue eq "") {
+            $theValue = $varTable{"classname"};
+            $theValue =~ /^([a-z])(.*)$/;
+            $aChar = $1;
+            $aChar =~ tr/[a-z]/[A-Z]/;
+            $theValue = "lti"."$aChar$2";
+            $varTable{$theKey}=$theValue;
+            if ($debug) {
+                print "$theKey -> $varTable{$theKey}\n";
+            }
+        } elsif ($theValue =~ /^(.*)\..*$/) {
+            $theValue = $1;
+            $varTable{$theKey}=$theValue;
+            if ($debug) {
+                print "$theKey -> $varTable{$theKey}\n";
+            }
+        }
+    }
+}
+
+# the multiple include protection macro will be automatically generated here:
+$aLine = $varTable{"filename"};
+$aLine =~ s/([A-Z])/_\1/g;
+$aLine =~ tr/[a-z]/[A-Z]/;
+$aLine = "\_$aLine\_H\_";
+$varTable{"_LTI_FILENAME_"}=$aLine;
+$varTable{"TODO"}='//TODO';
+$aLine = $varTable{"parentclass"};
+$aLine =~ /^([a-z])(.*)$/;
+$aChar = $1;
+$aChar =~ tr/[a-z]/[A-Z]/;
+$aLine = "lti"."$aChar$2";
+$varTable{"parClassHeader"}=$aLine;
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#  Create Header File
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    $headerSrc = $template.$tHeader;
+    $headerDest = $dest.$varTable{"filename"}.".h";
+
+    # check for existence of the file and if exists, make a backup!
+    if (-e $headerDest) {
+        if (-e $headerDest."~") {
+            unlink $headerDest."~"; #delete old backup file
+        }
+        rename $headerDest,$headerDest."~";
+    }
+
+    open(HEADERSRC,$headerSrc) || die "cannot find file $headerSrc\n";
+    @headerCode = <HEADERSRC>;
+    close(HEADERSRC);
+
+    open(HEADERDEST,">$headerDest") || die "cannot open file $headerDest\n"; 
+    
+    while ($#headerCode>=0) {
+        $aLine = shift @headerCode;
+        chop $aLine;
+
+        @destLines = ();
+
+        if ("$aLine" eq "") {
+            $destLines[0]="";
+        }
+
+        $counter = $destLines; # how many "lines" in @destLines?
+
+        while (! $aLine eq "") {
+            $someThingFound = 0;
+
+            # search for token of the form /*@ ... */
+            if ($aLine =~ /^(\s*\/*[^\/]*)(\/\*@)(\w+)(\*\/)(.*)$/) {
+                $someThingFound = 1;
+                $destLines[$counter] .= $1;
+                $theToken = $3;
+                $aLine = $5;
+                @theTerms = &evalTokenHeader($theToken);
+                $firstLine = shift @theTerms;
+                $destLines[$counter] .= $firstLine;
+                push @destLines,@theTerms;
+                $counter = $#destLines;
+            };
+            
+            # search for token of the form //@
+
+            if ($aLine =~ /^(\s*\/*[^\/]*)(\/\/@)(\w+)([\W]?.*)$/) {
+                $someThingFound = 1;
+                
+                $destLines[$counter] .= $1;
+                $theToken = $3;
+                $aLine = "";
+                @theTerms = &evalTokenHeader($theToken);
+                $firstLine = shift @theTerms;
+                $firstLine .= $4;
+                $destLines[$counter] .= $firstLine;
+                push @destLines,@theTerms;
+                $counter = $#destLines;
+            }
+
+            if ($someThingFound == 0) {
+                $destLines[$counter] .= $aLine;
+                $aLine = "";
+            }
+        }
+        while ($#destLines >= 0) {
+            print HEADERDEST (shift @destLines)."\n";
+        }
+    }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#  Create Source File
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    $sourceSrc = $template.$tSource;
+    $sourceDest = $dest.$varTable{"filename"}.".cpp";
+
+    # check for existence of the file and if exists, make a backup!
+    if (-e $sourceDest) {
+        if (-e $sourceDest."~") {
+            unlink $sourceDest."~"; #delete old backup file
+        }
+        rename $sourceDest,$sourceDest."~";
+    }
+
+    open(SOURCESRC,$sourceSrc) || die "cannot find file $sourceSrc\n";
+    @sourceCode = <SOURCESRC>;
+    close(SOURCESRC);
+
+    open(SOURCEDEST,">$sourceDest") || die "cannot open file $sourceDest\n"; 
+    
+    while ($#sourceCode>=0) {
+        $aLine = shift @sourceCode;
+        chop $aLine;
+
+        @destLines = ();
+
+        if ("$aLine" eq "") {
+            $destLines[0]="";
+        }
+
+        $counter = $destLines; # how many "lines" in @destLines?
+
+        while (! $aLine eq "") {
+            $someThingFound = 0;
+
+            # search for token of the form /*@ ... */
+            if ($aLine =~ /^(\s*\/*[^\/]*)(\/\*@)(\w+)(\*\/)(.*)$/) {
+                $someThingFound = 1;
+                $destLines[$counter] .= $1;
+                $theToken = $3;
+                $aLine = $5;
+                @theTerms = &evalTokenSource($theToken);
+                $firstLine = shift @theTerms;
+                $destLines[$counter] .= $firstLine;
+                push @destLines,@theTerms;
+                $counter = $#destLines;
+            };
+            
+            # search for token of the form //@
+
+            if ($aLine =~ /^(\s*\/*[^\/]*)(\/\/@)(\w+)([\W]?.*)$/) {
+                $someThingFound = 1;
+                
+                $destLines[$counter] .= $1;
+                $theToken = $3;
+                $aLine = "";
+                @theTerms = &evalTokenSource($theToken);
+                $firstLine = shift @theTerms;
+                $firstLine .= $4;
+                $destLines[$counter] .= $firstLine;
+                push @destLines,@theTerms;
+                $counter = $#destLines;
+            }
+
+            if ($someThingFound == 0) {
+                $destLines[$counter] .= $aLine;
+                $aLine = "";
+            }
+        }
+        while ($#destLines >= 0) {
+            print SOURCEDEST (shift @destLines)."\n";
+        }
+    }
+
+
+# -----------------------------------------------------------------------
+#  THE END
+# -----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+

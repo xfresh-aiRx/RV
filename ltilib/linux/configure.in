@@ -1,0 +1,162 @@
+# Process this file with autoconf to produce a configure script.
+AC_INIT(LTI-Lib,1.9.15)
+VERSION=1.9.15
+AC_SUBST(VERSION)
+AC_LANG(C++)
+AC_CONFIG_SRCDIR([../src/basics/ltiObject.h])
+AC_CONFIG_HEADER(../src/basics/config.h:config.h.in)
+
+# For local use, we need the absolute path of the library sources
+# We assume, we are on the linux directory
+LTI_BASEDIR=`echo "$PWD/.." | perl -e '$_=<>; while (s!/\w+/\.\.(/|$)!\1!g > 0) {} print;'`
+AC_SUBST(LTI_BASEDIR)
+
+# Canonical system
+# requires the shell scripts config.sub config.guess
+# AC_CANONICAL_SYSTEM
+
+# Checks for programs.
+AC_ENSURE_GNU_MAKE
+AC_PROG_CXX
+AC_PROG_INSTALL
+
+AC_LANG_CPLUSPLUS
+
+# Checks for libraries.
+AC_CHECK_LIB(png,png_read_png)
+AC_CHECK_LIB(jpeg,jpeg_read_header)
+AC_CHECK_LIB(z,deflate)
+AC_CHECK_LIB(m,atan2)
+AC_CHECK_LIB(pthread,pthread_create)
+
+ACX_LAPACK
+
+AC_ARG_WITH(lapack_includes,
+     [  --with-lapack-includes=PATH   Specify dir of lapack headers],
+     [  EXTRAINCLUDEPATH="$EXTRAINCLUDEPATH -I$with_lapack_includes" ])
+AC_SUBST(EXTRAINCLUDEPATH)
+
+AC_ARG_WITH(lapack_path_lib,
+     [  --with-lapack-path-lib=PATH   Specify dir of lapack library path],
+     [  EXTRALIBPATH="$EXTRALIBPATH -L$with_lapack_path_lib"  ])
+AC_SUBST(EXTRALIBPATH)
+
+AC_ARG_WITH(lapack_lib,
+     [  --with-lapack-lib=PATH   Specify lapack library],
+     [  EXTRALIBS="$EXTRALIBS -l$with_lapack_path_lib" ;
+        AC_DEFINE(HAVE_LAPACK,1,[Define if you have LAPACK library.])])
+AC_SUBST(EXTRALIBS)
+
+AC_SUBST(EXTRACXXFLAGS)
+
+AC_IMAGE_LIBS
+
+AC_PATH_X
+AC_PATH_XTRA
+AM_PATH_GTK([1.2.0],AC_DEFINE(HAVE_GTK,1,[defines if gtk libraries were found]))
+# Checks for library functions with and without underscores, to allow compiling
+# with Cygwin
+AC_CHECK_FUNCS(isnan isinf finite)
+AC_CHECK_FUNCS(_isnan _isinf _finite)
+
+AC_TYPE_SIZE_CHECK
+AC_C_BIGENDIAN
+AC_CXX_STREAMBUF_HAS_FD
+AC_CXX_IFSTREAM_HAS_FD_CTOR
+
+AC_CHECK_FILE(../src/imgProc/ltiSusan.h,AC_DEFINE(HAVE_SUSAN,1,[defines if the susan algorithms are present in the library]))
+AC_CHECK_FILE(../src/io/png/ltipngdecoder.h,AC_DEFINE(HAVE_LOCALPNG,1,[defines if the local implementation for png loader/savers was found]))
+AC_CHECK_FILE(../src/io/jpeg/ltijpegdeco.h,AC_DEFINE(HAVE_LOCALJPEG,1,[defines if the local implementation for png loader/savers was found]))
+
+AC_GET_PLATFORM_OPTS
+AC_PROCESSOR_CHECK
+AC_LIB_VERSIONS_CHECK
+
+# Configuration files
+AC_CONFIG_FILES(lti-config,[chmod 755 ./lti-config])
+AC_CONFIG_FILES(lti-local-config,[chmod 755 ./lti-local-config])
+AC_CONFIG_FILES(Makefile)
+AC_CONFIG_FILES(Makefile.jni)
+AC_CONFIG_FILES(Makefile.custom)
+AC_CONFIG_FILES(../examples/template/Makefile)
+AC_OUTPUT
+
+echo "Preparing examples"
+make -C ../examples forcecopymake
+echo ""
+echo "-----------------------------------------------------------------------"
+echo ""
+echo "Install prefix  : $prefix"
+echo "from            : $LTI_BASEDIR"
+if test "$acx_lapack_ok" = yes ; then
+  echo "LAPACK          : yes"
+else
+  echo "LAPACK          : not found"
+fi
+if test "$gtk_lib" = yes ; then
+  echo "GTK             : yes"
+else
+  echo "GTK             : no"
+fi
+if test "$ac_cv_lib_png_png_read_png" = yes; then
+  echo "PNG Library     : yes"
+else 
+  echo "PNG Library     : not found"
+  if test "$ac_cv_file____src_io_png_ltipngdecoder_h" = yes ; then
+    echo "Local PNG       : yes (Not part of LTI-Lib)"
+  else
+    echo "Local PNG       : not found"
+  fi
+fi
+if test "$ac_cv_lib_jpeg_jpeg_read_header" = yes ; then
+  echo "JPEG Library    : yes"
+else 
+  echo "JPEG Library    : not found"
+  if test "$ac_cv_file____src_io_jpeg_ltijpegdeco_h" = yes ; then
+    echo "Local JPEG      : yes (Not part of LTI-Lib)"
+  else
+    echo "Local JPEG      : not found"
+  fi
+fi
+if test "$ac_cv_file____src_imgProc_ltiSusan_h" = yes ; then
+  echo "SUSAN Algorithms: yes (Not part of LTI-Lib)"
+else
+  echo "SUSAN Algorithms: not found"
+fi
+if test "$enable_debug" = yes ; then
+  echo "Debug version   : compiled by default"
+else
+  echo "Debug version   : not compiled by default"
+fi
+if test "$enable_release" = yes ; then
+  echo "Release version : compiled by default"
+else
+  echo "Release version : not compiled by default"
+fi
+echo ""
+if test "$fortran_ok" != yes ; then
+echo "-----------------------------------------------------------------------"
+  echo ""
+  echo -n "LAPACK will not be used since "
+  if test "$fortran_ok" == nof2c ; then
+    echo "no f2c headers/librares were found"
+  else
+    echo "no valid Fortran compiler was found"
+  fi
+  echo ""
+fi 
+echo "-----------------------------------------------------------------------"
+echo ""
+echo "Using new configuration to create dependencies:"
+rm -f ./Dependencies; touch ./Dependencies; make dep
+echo ""
+echo "You can rebuild the dependencies file any time with 'make dep'"
+echo "-----------------------------------------------------------------------"
+echo ""
+echo "Now you can build the library with:"
+echo " > make"
+echo "To install it, you require write priviledges in $prefix and execute:"
+echo " > make install"
+echo ""
+echo "Enjoy!"
+echo ""

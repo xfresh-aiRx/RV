@@ -1,0 +1,522 @@
+################################################################################
+#                    STEMMER IMAGING GmbH
+################################################################################
+#
+#   Datei   : S_RGB_CCIR_SeperateSync.txt
+#   Autor   : Manfred Wuetschner
+#   Datum   : 16.02.1998
+#   Modul   : AM-STD RGB
+#   Kamera  : CCIR-RGB im SeperateSync Mode.
+#   Revision: 
+#
+################################################################################
+[SYSTEM:0]
+################################################################################
+# The virtual BOARDTYPE:0 section is replaced with the selected BoardType
+# by the QuickConfig Utility. To do this without the QuickConfig Utility replace
+# the BOARDTYPE:0 with the actual BoardType e.g. IC-PCI:0.
+################################################################################
+[IC-PCI:0]
+      Latency = 248
+      IRQ_Line = 0
+      Mailbox1 = 0x0
+      Mailbox2 = 0x0
+      Mailbox3 = 0x0
+      Mailbox4 = 0x0
+      
+      Frame_Count = 1
+      Start_Field = Next_even_field
+
+
+[AM-STD:0]
+      Slot_Number = 0
+      Startup_Port = 0
+      Load_Name = "amstd.exo"
+      RGB_Input_Board
+[CameraPort:0]
+      Name = "CCIR SeperateSync"
+      Camera_Structure = Create_Structure
+      Static_Mux_Mode
+      AM0_Mux_Select = Output_FIFO_2
+      AM1_Mux_Select = Output_FIFO_1
+      AM2_Mux_Select = Output_FIFO_0
+      RGB_CAM0_Input
+      RGB_HTotal = 454
+      RGB_HSync_Low = 67
+      RGB_HEqual_End = 32
+      RGB_Serration_Total = 388
+      RGB_VTotal = 524
+      RGB_VSync_Low = 5
+      RGB_VGate_Start = 518
+      RGB_VGate_End = 11
+      RGB_HOffset = 159
+      RGB_HActive = 925
+      RGB_VOffset = 21
+      RGB_VActive = 308
+      RGB_Strobe_Delay = 0
+      RGB_FRST_Offset_Delay = 0
+      RGB_FRST_Disable
+      RGB_FRST_Active_Hi
+      RGB_FRST_FROFF_Period
+      RGB_FEN_Pol_Falling
+      RGB_LEN_Pol_Falling
+      RGB_FLDPOL_Lo
+      RGB_FLDSEL_Lo
+      VScan_Disable
+      PLL_Ref_Select = Stripped_Hsync
+      VSYNCEN_Disable
+      PTG_HSYNC_Select
+      FLDSHFT_Enable
+      RGB_Interlace
+      VCLK_NoInvert
+      6MHz_Cutoff_LPF
+      LUT0_FIFO1
+      CSC_Bypassed_Mode
+      Interrupt_By_Strobe
+      CAM0_Hdrive_StrpSrc
+      RGB_Ext_Trigger
+      RGB_Trigger_Active_Lo
+      RGB_Interlaced_Trigger
+      RGB_Strobe_Fast
+      RGB_Strobe_Active_Hi
+      RGB_Skip_Field_Disable
+      Clamp_Src_Sync_Strip
+      RGB_Clamp_On_LEN_Fall
+      RGB_Clamp_Delay = 0
+      RGB_RPRef = 133
+      RGB_GPRef = 133
+      RGB_BPRef = 133
+      RGB_RNRef = 31
+      RGB_GNRef = 31
+      RGB_BNRef = 31
+      RGB_Sync_Strip_Rate = 0
+      RGB_Clamp_Volt = 31
+      Matrix_Name = "DEF_RGB_RGB"
+      Matrix_Structure = Create_Structure
+      CSC_Coefficient_Matrix = 1.000,0.000,0.000,0.000,1.000,0.000,0.000,0.000,1.000
+      Output_LUT_Type = Linear
+      RGB_Red_Gain = RGB_280_Gain
+      RGB_Grn_Gain = RGB_280_Gain
+      RGB_Blu_Gain = RGB_280_Gain
+      PLL_FDIV = 952
+      PLL_RDIV = 0
+      PLL_REFPOL_Hi
+      PLL_VCO = 5
+      PLL_PFD = 3
+      PLL_PDEN_Hi
+      PLL_INTFLT_Lo
+      PLL_INTVCO_Hi
+      PLL_CLKSEL_Hi
+      PLL_Internal_Feedback
+      PLL_FBKPOL_Hi
+      PLL_ADD_Lo
+      PLL_SWLW_Lo
+      PLL_PDA = 2
+      PLL_PDB = 3
+      PLL_LDLG_Hi
+      PLL_FINEEN_Lo
+      PLL_LCOUNT = 4
+      PLL_OMUX1_Lo
+      PLL_Ext_Ref_Mode
+      NP_Input_Format = Auto_Format_Detect
+      NP_XT_Select = NP_XT_Auto
+      NP_Reset_HACT_w_HRESET
+      NP_Mux_Select = NP_MUX2
+      NP_Dec_Rate = 0
+      NP_Dec_Start_O_Field
+      NP_Tempo_Dec_by_Frame
+      NP_HActive = 0
+      NP_VActive = 0
+      NP_HDelay = 0
+      NP_VDelay = 0
+      NP_HScale = 0
+      NP_VScale = 0
+      NP_Bright = 0
+      NP_Contrast = 0
+      NP_AGC_Delay = 0
+      NP_Burst_Delay = 0
+      NP_Luma_Notch_Filter_Enable
+      NP_Composite_Video
+      NP_Luma_Decimation_Enable
+      NP_Normal_CbCr_Order
+      NP_UGain = 0
+      NP_VGain = 0
+      NP_Hue = 0
+      NP_OES_Output_3_State = Time_and_Data
+      NP_LEN_8Bit_Out
+      NP_Ctrl_Code_insert_Disable
+      NP_Coring_Value = No_Coring
+      NP_Normal_Luma_Out
+      NP_NonInterlace
+      NP_Chroma_Comb_Disable
+      NP_Luma_Comb_Disable
+      NP_Normal_Chroma_ADC
+      NP_VScale_F_Select = NP_2_Tap
+      NP_ACTIVE_Comp_Active
+      NP_HReset_64CLKx1_Wide
+[CameraPort:1]
+      Name = "Dummy"
+      Camera_Structure = Create_Structure
+      Static_Mux_Mode
+      AM0_Mux_Select = Output_FIFO_2
+      AM1_Mux_Select = Output_FIFO_1
+      AM2_Mux_Select = Output_FIFO_0
+      RGB_CAM1_Input
+      RGB_HTotal = 454
+      RGB_HSync_Low = 67
+      RGB_HEqual_End = 32
+      RGB_Serration_Total = 388
+      RGB_VTotal = 524
+      RGB_VSync_Low = 5
+      RGB_VGate_Start = 518
+      RGB_VGate_End = 11
+      RGB_HOffset = 159
+      RGB_HActive = 925
+      RGB_VOffset = 21
+      RGB_VActive = 308
+      RGB_Strobe_Delay = 0
+      RGB_FRST_Offset_Delay = 0
+      RGB_FRST_Disable
+      RGB_FRST_Active_Hi
+      RGB_FRST_FROFF_Period
+      RGB_FEN_Pol_Falling
+      RGB_LEN_Pol_Falling
+      RGB_FLDPOL_Lo
+      RGB_FLDSEL_Lo
+      VScan_Disable
+      PLL_Ref_Select = Stripped_Hsync
+      VSYNCEN_Disable
+      PTG_HSYNC_Select
+      FLDSHFT_Enable
+      RGB_Interlace
+      VCLK_NoInvert
+      6MHz_Cutoff_LPF
+      LUT0_FIFO1
+      CSC_Bypassed_Mode
+      Interrupt_By_Strobe
+      CAM0_Hdrive_StrpSrc
+      RGB_Ext_Trigger
+      RGB_Trigger_Active_Lo
+      RGB_Interlaced_Trigger
+      RGB_Strobe_Fast
+      RGB_Strobe_Active_Hi
+      RGB_Skip_Field_Disable
+      Clamp_Src_Sync_Strip
+      RGB_Clamp_On_LEN_Fall
+      RGB_Clamp_Delay = 0
+      RGB_RPRef = 133
+      RGB_GPRef = 133
+      RGB_BPRef = 133
+      RGB_RNRef = 31
+      RGB_GNRef = 31
+      RGB_BNRef = 31
+      RGB_Sync_Strip_Rate = 0
+      RGB_Clamp_Volt = 31
+      Matrix_Name = "DEF_RGB_RGB"
+      Matrix_Structure = Create_Structure
+      CSC_Coefficient_Matrix = 1.000,0.000,0.000,0.000,1.000,0.000,0.000,0.000,1.000
+      Output_LUT_Type = Linear
+      RGB_Red_Gain = RGB_280_Gain
+      RGB_Grn_Gain = RGB_280_Gain
+      RGB_Blu_Gain = RGB_280_Gain
+      PLL_FDIV = 952
+      PLL_RDIV = 0
+      PLL_REFPOL_Hi
+      PLL_VCO = 5
+      PLL_PFD = 3
+      PLL_PDEN_Hi
+      PLL_INTFLT_Lo
+      PLL_INTVCO_Hi
+      PLL_CLKSEL_Hi
+      PLL_Internal_Feedback
+      PLL_FBKPOL_Hi
+      PLL_ADD_Lo
+      PLL_SWLW_Lo
+      PLL_PDA = 2
+      PLL_PDB = 3
+      PLL_LDLG_Hi
+      PLL_FINEEN_Lo
+      PLL_LCOUNT = 4
+      PLL_OMUX1_Lo
+      PLL_Ext_Ref_Mode
+      NP_Input_Format = Auto_Format_Detect
+      NP_XT_Select = NP_XT_Auto
+      NP_Reset_HACT_w_HRESET
+      NP_Mux_Select = NP_MUX2
+      NP_Dec_Rate = 0
+      NP_Dec_Start_O_Field
+      NP_Tempo_Dec_by_Frame
+      NP_HActive = 0
+      NP_VActive = 0
+      NP_HDelay = 0
+      NP_VDelay = 0
+      NP_HScale = 0
+      NP_VScale = 0
+      NP_Bright = 0
+      NP_Contrast = 0
+      NP_AGC_Delay = 0
+      NP_Burst_Delay = 0
+      NP_Luma_Notch_Filter_Enable
+      NP_Composite_Video
+      NP_Luma_Decimation_Enable
+      NP_Normal_CbCr_Order
+      NP_UGain = 0
+      NP_VGain = 0
+      NP_Hue = 0
+      NP_OES_Output_3_State = Time_and_Data
+      NP_LEN_8Bit_Out
+      NP_Ctrl_Code_insert_Disable
+      NP_Coring_Value = No_Coring
+      NP_Normal_Luma_Out
+      NP_NonInterlace
+      NP_Chroma_Comb_Disable
+      NP_Luma_Comb_Disable
+      NP_Normal_Chroma_ADC
+      NP_VScale_F_Select = NP_2_Tap
+      NP_ACTIVE_Comp_Active
+      NP_HReset_64CLKx1_Wide
+[CameraPort:2]
+      Name = "Dummy"
+      Camera_Structure = Create_Structure
+      Static_Mux_Mode
+      AM0_Mux_Select = Output_FIFO_0
+      AM1_Mux_Select = Output_FIFO_1
+      AM2_Mux_Select = Output_FIFO_0
+      RGB_CAM0_Input
+      RGB_HTotal = 454
+      RGB_HSync_Low = 67
+      RGB_HEqual_End = 32
+      RGB_Serration_Total = 388
+      RGB_VTotal = 524
+      RGB_VSync_Low = 5
+      RGB_VGate_Start = 518
+      RGB_VGate_End = 11
+      RGB_HOffset = 94
+      RGB_HActive = 604
+      RGB_VOffset = 15
+      RGB_VActive = 255
+      RGB_Strobe_Delay = 0
+      RGB_FRST_Offset_Delay = 0
+      RGB_FRST_Disable
+      RGB_FRST_Active_Hi
+      RGB_FRST_FROFF_Period
+      RGB_FEN_Pol_Falling
+      RGB_LEN_Pol_Falling
+      RGB_FLDPOL_Lo
+      RGB_FLDSEL_Lo
+      VScan_Disable
+      PLL_Ref_Select = Stripped_Hsync
+      VSYNCEN_Disable
+      PTG_HSYNC_Select
+      FLDSHFT_Disable
+      RGB_Interlace
+      VCLK_NoInvert
+      6MHz_Cutoff_LPF
+      LUT0_FIFO1
+      CSC_Bypassed_Mode
+      Interrupt_By_Strobe
+      Grn_Video_StrpSrc
+      RGB_Ext_Trigger
+      RGB_Trigger_Active_Lo
+      RGB_Interlaced_Trigger
+      RGB_Strobe_Fast
+      RGB_Strobe_Active_Hi
+      RGB_Skip_Field_Disable
+      Clamp_Src_Sync_Strip
+      RGB_Clamp_On_LEN_Fall
+      RGB_Clamp_Delay = 0
+      RGB_RPRef = 133
+      RGB_GPRef = 133
+      RGB_BPRef = 133
+      RGB_RNRef = 31
+      RGB_GNRef = 31
+      RGB_BNRef = 31
+      RGB_Sync_Strip_Rate = 0
+      RGB_Clamp_Volt = 31
+      Matrix_Name = "DEF_RGB_RGB"
+      Matrix_Structure = Create_Structure
+      CSC_Coefficient_Matrix = 1.000,0.000,0.000,0.000,1.000,0.000,0.000,0.000,1.000
+      Output_LUT_Type = Linear
+      RGB_Red_Gain = RGB_280_Gain
+      RGB_Grn_Gain = RGB_280_Gain
+      RGB_Blu_Gain = RGB_280_Gain
+      PLL_FDIV = 622
+      PLL_RDIV = 0
+      PLL_REFPOL_Hi
+      PLL_VCO = 5
+      PLL_PFD = 3
+      PLL_PDEN_Hi
+      PLL_INTFLT_Lo
+      PLL_INTVCO_Hi
+      PLL_CLKSEL_Hi
+      PLL_Internal_Feedback
+      PLL_FBKPOL_Hi
+      PLL_ADD_Lo
+      PLL_SWLW_Lo
+      PLL_PDA = 2
+      PLL_PDB = 3
+      PLL_LDLG_Hi
+      PLL_FINEEN_Lo
+      PLL_LCOUNT = 7
+      PLL_OMUX1_Lo
+      PLL_Ext_Ref_Mode
+      NP_Input_Format = Auto_Format_Detect
+      NP_XT_Select = NP_XT_Auto
+      NP_Reset_HACT_w_HRESET
+      NP_Mux_Select = NP_MUX2
+      NP_Dec_Rate = 0
+      NP_Dec_Start_O_Field
+      NP_Tempo_Dec_by_Frame
+      NP_HActive = 640
+      NP_VActive = 480
+      NP_HDelay = 120
+      NP_VDelay = 22
+      NP_HScale = 682
+      NP_VScale = 0
+      NP_Bright = 0
+      NP_Contrast = 216
+      NP_AGC_Delay = 104
+      NP_Burst_Delay = 93
+      NP_Luma_Notch_Filter_Enable
+      NP_Composite_Video
+      NP_Luma_Decimation_Disable
+      NP_Normal_CbCr_Order
+      NP_UGain = 254
+      NP_VGain = 180
+      NP_Hue = 0
+      NP_OES_Output_3_State = Time_and_Data_Clock
+      NP_LEN_16Bit_Out
+      NP_Ctrl_Code_insert_Disable
+      NP_Coring_Value = No_Coring
+      NP_Normal_Luma_Out
+      NP_Interlace
+      NP_Chroma_Comb_Enable
+      NP_Luma_Comb_Disable
+      NP_Sleep_Chroma_ADC
+      NP_VScale_F_Select = NP_2_Tap
+      NP_ACTIVE_hor_Active
+      NP_HReset_64CLKx1_Wide
+[CameraPort:3]
+      Name = "Dummy"
+      Camera_Structure = Create_Structure
+      Static_Mux_Mode
+      AM0_Mux_Select = Output_FIFO_0
+      AM1_Mux_Select = Output_FIFO_1
+      AM2_Mux_Select = Output_FIFO_0
+      RGB_CAM0_Input
+      RGB_HTotal = 454
+      RGB_HSync_Low = 67
+      RGB_HEqual_End = 32
+      RGB_Serration_Total = 388
+      RGB_VTotal = 524
+      RGB_VSync_Low = 5
+      RGB_VGate_Start = 518
+      RGB_VGate_End = 11
+      RGB_HOffset = 94
+      RGB_HActive = 604
+      RGB_VOffset = 15
+      RGB_VActive = 255
+      RGB_Strobe_Delay = 0
+      RGB_FRST_Offset_Delay = 0
+      RGB_FRST_Disable
+      RGB_FRST_Active_Hi
+      RGB_FRST_FROFF_Period
+      RGB_FEN_Pol_Falling
+      RGB_LEN_Pol_Falling
+      RGB_FLDPOL_Lo
+      RGB_FLDSEL_Lo
+      VScan_Disable
+      PLL_Ref_Select = Stripped_Hsync
+      VSYNCEN_Disable
+      PTG_HSYNC_Select
+      FLDSHFT_Disable
+      RGB_Interlace
+      VCLK_NoInvert
+      6MHz_Cutoff_LPF
+      LUT0_FIFO1
+      CSC_Bypassed_Mode
+      Interrupt_By_Strobe
+      Grn_Video_StrpSrc
+      RGB_Ext_Trigger
+      RGB_Trigger_Active_Lo
+      RGB_Interlaced_Trigger
+      RGB_Strobe_Fast
+      RGB_Strobe_Active_Hi
+      RGB_Skip_Field_Disable
+      Clamp_Src_Sync_Strip
+      RGB_Clamp_On_LEN_Fall
+      RGB_Clamp_Delay = 0
+      RGB_RPRef = 133
+      RGB_GPRef = 133
+      RGB_BPRef = 133
+      RGB_RNRef = 31
+      RGB_GNRef = 31
+      RGB_BNRef = 31
+      RGB_Sync_Strip_Rate = 0
+      RGB_Clamp_Volt = 31
+      Matrix_Name = "DEF_RGB_RGB"
+      Matrix_Structure = Create_Structure
+      CSC_Coefficient_Matrix = 1.000,0.000,0.000,0.000,1.000,0.000,0.000,0.000,1.000
+      Output_LUT_Type = Linear
+      RGB_Red_Gain = RGB_280_Gain
+      RGB_Grn_Gain = RGB_280_Gain
+      RGB_Blu_Gain = RGB_280_Gain
+      PLL_FDIV = 622
+      PLL_RDIV = 0
+      PLL_REFPOL_Hi
+      PLL_VCO = 5
+      PLL_PFD = 3
+      PLL_PDEN_Hi
+      PLL_INTFLT_Lo
+      PLL_INTVCO_Hi
+      PLL_CLKSEL_Hi
+      PLL_Internal_Feedback
+      PLL_FBKPOL_Hi
+      PLL_ADD_Lo
+      PLL_SWLW_Lo
+      PLL_PDA = 2
+      PLL_PDB = 3
+      PLL_LDLG_Hi
+      PLL_FINEEN_Lo
+      PLL_LCOUNT = 7
+      PLL_OMUX1_Lo
+      PLL_Ext_Ref_Mode
+      NP_Input_Format = Auto_Format_Detect
+      NP_XT_Select = NP_XT_Auto
+      NP_Reset_HACT_w_HRESET
+      NP_Mux_Select = NP_MUX3
+      NP_Dec_Rate = 0
+      NP_Dec_Start_O_Field
+      NP_Tempo_Dec_by_Frame
+      NP_HActive = 720
+      NP_VActive = 576
+      NP_HDelay = 160
+      NP_VDelay = 31
+      NP_HScale = 828
+      NP_VScale = 0
+      NP_Bright = 0
+      NP_Contrast = 216
+      NP_AGC_Delay = 127
+      NP_Burst_Delay = 114
+      NP_Luma_Notch_Filter_Enable
+      NP_Composite_Video
+      NP_Luma_Decimation_Disable
+      NP_Normal_CbCr_Order
+      NP_UGain = 254
+      NP_VGain = 180
+      NP_Hue = 0
+      NP_OES_Output_3_State = Time_and_Data_Clock
+      NP_LEN_16Bit_Out
+      NP_Ctrl_Code_insert_Disable
+      NP_Coring_Value = No_Coring
+      NP_Normal_Luma_Out
+      NP_Interlace
+      NP_Chroma_Comb_Enable
+      NP_Luma_Comb_Disable
+      NP_Sleep_Chroma_ADC
+      NP_VScale_F_Select = NP_2_Tap
+      NP_ACTIVE_hor_Active
+      NP_HReset_64CLKx1_Wide
+[AT-PCI]
+      Safe_Access_Mode
+

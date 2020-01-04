@@ -1,0 +1,559 @@
+# Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+# Lehrstuhl fuer Technische Informatik, RWTH-Aachen, Germany
+#
+# This file is part of the LTI-Computer Vision Library (LTI-Lib)
+#
+# The LTI-Lib is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License (LGPL)
+# as published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# The LTI-Lib is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with the LTI-Lib; see the file LICENSE.  If
+# not, write to the Free Software Foundation, Inc., 59 Temple Place -
+# Suite 330, Boston, MA 02111-1307, USA.
+#
+
+#----------------------------------------------------------------
+# project ....: LTI Digital Image/Signal Processing Library
+# file .......: Makefile.in
+# authors ....: Pablo Alvarado, Jochen Wickel
+# organization: LTI, RWTH Aachen
+# creation ...: 29.10.99
+# revisions ..: $Id: Makefile.in,v 1.54 2005/07/09 04:02:30 sltilib Exp $
+#----------------------------------------------------------------
+
+# 
+# The documentation of the targets, requirements and additional features of
+# this Makefile can be found in the Online documentation, in the Mainpage
+# under "Some Tips for the supported compilers".
+#
+# For the impatient these are the main targets:
+#
+# make all-release : compute the library and rtester for release version
+# make all-debug   : compute the library and dtester for the debug version
+#
+
+# Compiler to be used
+CXX = @CXX@
+LAPACK_LIBS = @LAPACK_LIBS@
+ifdef LAPACK_LIBS
+  LIBS = @LIBS@ @LAPACK_LIBS@ @BLAS_LIBS@ @F2C_LIBS@
+else
+  LIBS = @LIBS@ 
+endif
+PNGLIB = @PNGLIB@
+JPEGLIB = @JPEGLIB@
+INSTALL = @INSTALL@
+VERSION = @VERSION@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@/ltilib-$(VERSION)
+includedir = @includedir@/ltilib-$(VERSION)
+libdirlnk = @libdir@/ltilib
+includedirlnk = @includedir@/ltilib
+
+# Main tester source file
+TESTERFILE:=../tester/ltiTester.cpp
+
+# For new versions of gcc, <limits> already exists, but in older
+# versions a replacement is needed
+CXX_MAJOR:=$(shell echo `$(CXX) --version` | sed -e 's/[^0-9]*\([0-9][0-9]*\)\..*/\1/;' | egrep '^[0-9]+' )
+
+ifeq "$(CXX_MAJOR)" "2"
+  VPATHADDON=:g++
+  CPUARCH = @_ac_cpuarch_gcc2@ -ftemplate-depth-35
+  CPUARCHD = @_ac_cpuarchd_gcc2@ -ftemplate-depth-35
+else
+  VPATHADDON=
+  CPUARCH = @_ac_cpuarch_gcc3x@
+  CPUARCHD = @_ac_cpuarchd_gcc3x@
+endif
+
+# Files required in case there is no jpeg/png-lib available
+
+ifeq "$(JPEGLIB)" "1"
+  SRCIOJPEG=
+else
+  SRCIOJPEG = $(wildcard ../src/io/jpeg/*.h) $(wildcard ../src/io/jpeg/*.cpp)
+  VPATHJPEG=:../src/io/jpeg
+endif
+
+ifeq "$(PNGLIB)" "1"
+  SRCIOPNG=
+else
+  SRCIOPNG = $(wildcard ../src/io/png/*.h) $(wildcard ../src/io/png/*.cpp) 
+  VPATHPNG=:../src/io/png
+endif
+
+ifdef LAPACK_LIBS
+  VPATHADDON += :../misc/lamath
+endif
+
+# Directories with source file code (.h and .cpp)
+VPATH:=../src/basics:../src/math:../src/imgProc:../src/ioBasics:../src/io$(VPATHJPEG)$(VPATHPNG):../src/viewer:../src/system:../src/classifiers:workbench:../tester$(VPATHADDON)
+
+# Destination directories for the debug, release and profiling versions of the
+# code
+
+DEBUGDIR  = ../obj/debug/
+RELEASEDIR = ../obj/release/
+PROFILEDIR = ../obj/profile/
+
+# Extra include directories and library directories for hardware specific stuff
+
+# check if file 'extrapaths.mk' exists
+EXTRAMK:=$(shell if [ -f extrapaths.mk ] ; then echo "yes" ; else echo "no" ; fi)
+
+ifeq "$(EXTRAMK)" "yes"
+  include extrapaths.mk
+endif
+
+EXTRACXXFLAGS+=@EXTRACXXFLAGS@
+EXTRAINCLUDEPATH+=@EXTRAINCLUDEPATH@
+EXTRALIBPATH+=@EXTRALIBPATH@
+EXTRALIBS+=@EXTRALIBS@
+
+# Base directory of the library
+LTIBASE = @LTI_BASEDIR@
+
+# required for the newer gtk versions
+ifeq "x@gtk_lib@" "xyes"
+GTKINCLUDEPATH = $(shell gtk-config --cflags gthread)
+else
+GTKINCLUDEPATH = 
+endif
+
+# compiler flags
+CXXINCLUDE =  $(EXTRAINCLUDEPATH) -I$(PWD) $(patsubst %,-I%,$(subst :, ,$(VPATH))) $(LAPACKINCLUDE) $(GTKINCLUDEPATH)
+
+# the sources (.h and .cpp)
+
+SRCBASICS = $(wildcard ../src/basics/*.h) $(wildcard ../src/basics/*.cpp)
+SRCMATH = $(wildcard ../src/math/*.h) $(wildcard ../src/math/*.cpp)
+SRCIMGPROC = $(wildcard ../src/imgProc/*.h) $(wildcard ../src/imgProc/*.cpp)
+SRCIO = $(wildcard ../src/io/*.h) $(wildcard ../src/io/*.cpp) $(SRCIOPNG) $(SRCIOJPEG)
+SRCIOBASICS = $(wildcard ../src/ioBasics/*.h) $(wildcard ../src/ioBasics/*.cpp)
+SRCVIEWER = $(wildcard ../src/viewer/*.h) $(wildcard ../src/viewer/*.cpp)
+SRCSYSTEM = $(wildcard ../src/system/*.h) $(wildcard ../src/system/*.cpp)
+SRCCLASSI = $(wildcard ../src/classifiers/*.h) $(wildcard ../src/classifiers/*.cpp)
+SRCWORKBE = $(wildcard workbench/*.h) $(wildcard workbench/*.cpp)
+ifdef LAPACK_LIBS
+SRCLAMATH = $(wildcard ../misc/lamath/*.h) $(wildcard ../misc/lamath/*.cpp)
+else
+SRCLAMATH =
+endif
+
+SRCALL = $(SRCBASICS) $(SRCMATH) $(SRCIMGPROC) $(SRCIO) $(SRCVIEWER) \
+         $(SRCSYSTEM) $(SRCCLASSI) $(SRCLAMATH) $(SRCIOBASICS)
+
+HEADERALL = $(filter %.h,$(SRCALL))
+
+# only the implementation sources (.cpp)
+
+CPPBASICS = $(filter %.cpp,$(SRCBASICS))
+CPPMATH = $(filter %.cpp,$(SRCMATH))
+CPPLAMATH = $(filter %.cpp,$(SRCLAMATH))
+CPPIMGPROC = $(filter %.cpp,$(SRCIMGPROC)) 
+CPPIO = $(filter %.cpp,$(SRCIO))
+CPPIOBASICS = $(filter %.cpp,$(SRCIOBASICS))
+CPPVIEWER = $(filter %.cpp,$(SRCVIEWER))
+CPPSYSTEM = $(filter %.cpp,$(SRCSYSTEM))
+CPPCLASSI = $(filter %.cpp,$(SRCCLASSI))
+CPPWORKBE = $(filter %.cpp,$(SRCWORKBE))
+
+CPPALL = $(CPPBASICS) $(CPPMATH) $(CPPIMGPROC) $(CPPIO) $(CPPVIEWER) \
+        $(CPPSYSTEM) $(CPPCLASSI) $(CPPLAMATH) $(CPPIOBASICS)
+
+# object files for the debug version
+
+DEBBASICS = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPBASICS)))
+DEBMATH = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPMATH)))
+DEBLAMATH = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPLAMATH)))
+DEBIMGPROC = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPIMGPROC)))
+DEBIO = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPIO)))
+DEBIOBASICS = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPIOBASICS)))
+DEBVIEWER = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPVIEWER)))
+DEBSYSTEM = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPSYSTEM)))
+DEBCLASSI = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPCLASSI)))
+DEBWORKBE = $(patsubst %.cpp,$(DEBUGDIR)%.o,$(notdir $(CPPWORKBE)))
+
+DEBALL = $(DEBBASICS) $(DEBMATH) $(DEBIMGPROC) $(DEBIO) $(DEBVIEWER) \
+        $(DEBSYSTEM) $(DEBCLASSI) $(DEBLAMATH) $(DEBIOBASICS)
+
+# object files for the release version
+
+RELBASICS = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPBASICS)))
+RELMATH = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPMATH)))
+RELLAMATH = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPLAMATH)))
+RELIMGPROC = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPIMGPROC)))
+RELIO = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPIO))) 
+RELIOBASICS = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPIOBASICS)))
+RELVIEWER = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPVIEWER)))
+RELSYSTEM = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPSYSTEM)))
+RELCLASSI = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPCLASSI)))
+RELWORKBE = $(patsubst %.cpp,$(RELEASEDIR)%.o,$(notdir $(CPPWORKBE)))
+
+RELALL = $(RELBASICS) $(RELMATH) $(RELIMGPROC) $(RELIO) $(RELVIEWER) \
+        $(RELSYSTEM) $(RELCLASSI) $(RELLAMATH) $(RELIOBASICS)
+
+# object files for the profile version
+
+PFLBASICS = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPBASICS)))
+PFLMATH = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPMATH)))
+PFLLAMATH = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPLAMATH)))
+PFLIMGPROC = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPIMGPROC)))
+PFLIO = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPIO))) 
+PFLIOBASICS = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPIOBASICS)))
+PFLVIEWER = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPVIEWER)))
+PFLSYSTEM = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPSYSTEM)))
+PFLCLASSI = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPCLASSI)))
+PFLWORKBE = $(patsubst %.cpp,$(PROFILEDIR)%.o,$(notdir $(CPPWORKBE)))
+
+PFLALL = $(PFLBASICS) $(PFLMATH) $(PFLIMGPROC) $(PFLIO) $(PFLVIEWER) \
+        $(PFLSYSTEM) $(PFLCLASSI) $(PFLLAMATH) $(PFLIOBASICS)
+
+
+# for a description of the -Dxxxx options see 
+# 'info libc' -> Feature Test Macros:: How to control what names are defined. 
+
+CXXFLAGSDEB = -c -g $(CPUARCHD) -Wundef -Wwrite-strings -Wall -ansi -D_BSD_SOURCE -D_XOPEN_SOURCE=500 -D_REENTRANT -D_DEBUG @OSCXXOPTS@
+CXXFLAGSREL = -c -O3 $(CPUARCH) -Wundef -Wwrite-strings -Wall -ansi -D_BSD_SOURCE -D_XOPEN_SOURCE=500 -D_REENTRANT -DNDEBUG @OSCXXOPTS@
+CXXFLAGSPFL = -c -g $(CPUARCH) -p -Wundef -Wwrite-strings -Wall -ansi -D_BSD_SOURCE -D_XOPEN_SOURCE=500 -D_REENTRANT -D_DEBUG @OSCXXOPTS@
+
+# the right version
+
+DEBOBJIPS =$(DEBBASICS) $(DEBMATH) $(DEBIMGPROC) $(DEBIO) $(DEBSYSTEM) $(DEBCLASSI) $(DEBLAMATH) $(DEBIOBASICS)
+RELOBJIPS = $(RELBASICS) $(RELMATH) $(RELIMGPROC) $(RELIO) $(RELSYSTEM) $(RELCLASSI) $(RELLAMATH) $(RELIOBASICS)
+PFLOBJIPS = $(PFLBASICS) $(PFLMATH) $(PFLIMGPROC) $(PFLIO) $(PFLSYSTEM) $(PFLCLASSI) $(PFLLAMATH) $(PFLIOBASICS)
+
+DEBOBJMATH =$(DEBBASICS) $(DEBMATH) $(DEBIOBASICS) $(DEBLAMATH) $(DEBSYSTEM)
+RELOBJMATH = $(RELBASICS) $(RELMATH) $(RELIOBASICS) $(RELLAMATH) $(RELSYSTEM)
+PFLOBJMATH = $(PFLBASICS) $(PFLMATH) $(PFLIOBASICS) $(PFLLAMATH) $(PFLSYSTEM)
+
+# PROFILE = -p
+PROFILE =
+
+# This flag controls the output of an error message to the std::err stream
+# when an exception is thrown.  This simplifies the debugging process and
+# might be necessary if you work with Java.  
+# Just define the symbol DEBUGEXC symbol if you want to make use of this
+# feature.
+# An preferable alternative is using the "extrapaths.mk" file to define
+# this symbol in the compilation process.  This way, you can preserve your
+# settings after a "./configure" :
+# 
+# EXTRACXXFLAGS=-D_DEBUG_EXCEPTION
+
+#DEBUGEXC =-D_DEBUG_EXCEPTION
+DEBUGEXC = 
+
+GCCD = $(CXX) $(CXXFLAGSDEB) $(EXTRACXXFLAGS) $(DEBUGEXC) $(CXXINCLUDE)
+GCCR = $(CXX) $(CXXFLAGSREL) $(EXTRACXXFLAGS) $(DEBUGEXC) $(CXXINCLUDE)
+GCCP = $(CXX) $(CXXFLAGSPFL) $(EXTRACXXFLAGS) $(DEBUGEXC) $(CXXINCLUDE)
+
+# linker flags
+
+LINKDIRD = -L. -L$(DEBUGDIR) 
+LINKDIRR = -L. -L$(RELEASEDIR) 
+LINKDIRP = -L. -L$(PROFILEDIR) 
+
+LNALLD = $(CXX) $(LINKDIRD) $(shell gtk-config --libs gthread) -o
+LNALLR = $(CXX) $(LINKDIRR) $(shell gtk-config --libs gthread) -o
+LNALLP = $(CXX) $(LINKDIRP) -p $(shell gtk-config --libs gthread) -o
+
+# implicit rules for the debug, release and profile version
+
+$(DEBUGDIR)%.o : %.cpp
+	@echo "Compiling debug version of $<" ; \
+        $(GCCD) $< -o $(DEBUGDIR)$(notdir $@)
+
+$(RELEASEDIR)%.o : %.cpp
+	@echo "Compiling release version of $<" ; \
+        $(GCCR) $< -o $(RELEASEDIR)$(notdir $@)
+
+$(PROFILEDIR)%.o : %.cpp
+	@echo "Compiling profile version of $<" ; \
+        $(GCCP) $< -o $(PROFILEDIR)$(notdir $@)
+
+# the rules
+
+default: @LIB_DEBUG@ @LIB_RELEASE@
+
+all: all-debug all-release
+
+../bin/tester: ../bin/dtester
+	@echo "'tester' is deprecated.  Please use: " ; \
+	echo  "  'dtester' for the debug version," ; \
+	echo  "  'rtester' for the release version," ; \
+	echo  "  'ptester' for the profile version." ; \
+	if [ -f ../bin/tester ]; then rm ../bin/tester ; fi; \
+	ln -s ../bin/dtester ../bin/tester
+
+../bin/dtester: ../lib/libltid.a $(DEBUGDIR)main.o $(DEBUGDIR)ltiTester.o $(DEBWORKBE)
+	@echo "Linking ../bin/dtester" ; \
+	$(LNALLD) ../bin/dtester $(DEBUGDIR)main.o $(DEBUGDIR)ltiTester.o $(DEBWORKBE) $(EXTRALIBS) $(LIBS) $(EXTRALIBPATH) ../lib/libltid.a
+
+../bin/rtester: ../lib/libltir.a $(RELEASEDIR)main.o $(RELEASEDIR)ltiTester.o $(RELWORKBE)
+	@echo "Linking ../bin/rtester" ; \
+	$(LNALLR) ../bin/rtester $(RELEASEDIR)main.o $(RELEASEDIR)ltiTester.o $(RELWORKBE) $(EXTRALIBS) $(LIBS) $(EXTRALIBPATH) ../lib/libltir.a
+
+../bin/ptester: ../lib/libltip.a $(PROFILEDIR)main.o $(PROFILEDIR)ltiTester.o $(PFLWORKBE)
+	@echo "Linking ../bin/ptester" ; \
+	$(LNALLP) ../bin/ptester $(PROFILEDIR)main.o $(PROFILEDIR)ltiTester.o $(PFLWORKBE) $(EXTRALIBS) $(LIBS) $(EXTRALIBPATH) ../lib/libltip.a
+
+tester: ../bin/tester
+dtester: ../bin/dtester
+rtester: ../bin/rtester
+ptester: ../bin/ptester
+
+bins: ../bin/rtester ../bin/dtester
+
+libsr:	../lib/libltir.a ../lib/libltimathr.a ../lib/libltinvr.a 
+libsd:	../lib/libltid.a ../lib/libltimathd.a ../lib/libltinvd.a 
+libsp:	../lib/libltip.a
+
+libr:	../lib/libltir.a
+libd:	../lib/libltid.a
+libp:	../lib/libltip.a
+
+dep:
+	@echo "Searching for dependencies (this will take a while)..."
+	@$(CXX) -MM $(CXXINCLUDE) $(CPPALL) $(CPPWORKBE) $(TESTERFILE) > Dependencies
+	@echo "  Generating dependencies for debug version..."
+	@sed -e "s/^\([a-zA-Z]\)/..\/obj\/debug\/\1/" Dependencies > Dependencies.deb
+	@echo "  Generating dependencies for release version..."
+	@sed -e "s/^\([a-zA-Z]\)/..\/obj\/release\/\1/" Dependencies > Dependencies.rel
+	@echo "  Generating dependencies for profile version..."
+	@sed -e "s/^\([a-zA-Z]\)/..\/obj\/profile\/\1/" Dependencies > Dependencies.pfl
+
+	@rm Dependencies
+	@cat Dependencies.deb Dependencies.rel Dependencies.pfl > Dependencies
+	@rm Dependencies.rel Dependencies.deb Dependencies.pfl
+	@echo "Ready."
+
+all-debug: ../lib/libltid.a ../bin/dtester
+
+all-release: ../lib/libltir.a ../bin/rtester
+
+all-profile: ../lib/libltip.a ../bin/ptester
+
+shared: liblti.so
+
+clean:
+	rm -fv ../bin/core* ../bin/tester ../bin/rtester ../bin/dtester ../bin/ptester $(DEBUGDIR)*.o $(RELEASEDIR)*.o $(PROFILEDIR)*.o *.o
+
+clean-libs: clean
+	rm -fv ../lib/st* ../lib/lib*.a
+
+clean-docs:
+	@echo "  removing latex doc files..." ; \
+	find ../doc/latex -type f -maxdepth 1 -exec rm -f {} \; ; \
+	echo "  removing html doc files..." ; \
+	find ../doc/html -maxdepth 1 -type f -name '*_*' -exec rm -f {} \; ; \
+	rm -fv ../doc/ltilib.tag
+
+clean-all:
+	@echo "Removing files..." ; \
+        echo "  removing obj, core and binary files..." ; \
+        rm -f ../bin/core* ../bin/tester ../bin/rtester ../bin/dtester ../bin/ptester $(DEBUGDIR)*.o $(RELEASEDIR)*.o $(PROFILEDIR)*.o ../lib/lib*.a *.o ; \
+        echo "  removing latex doc files..." ; \
+        find ../doc/latex -type f -maxdepth 1 -exec rm -vf {} \; ; \
+        echo "  removing html doc files..." ; \
+        find ../doc/html -maxdepth 1 -type f -name '*_*' -exec rm -f {} \; ; \
+	rm -fv ../doc/ltilib.tag ; \
+        echo "  removing emacs backup files..." ; \
+        find $$PWD/../ \( -name '*\~' -or -name '\#*' \) -exec rm -f {} \; ; \
+        echo "  removing other automatic created backup files..." ; \
+        find $$PWD/../ \( -name '\.\#*' -or -name '\#*' \) -exec rm -f {} \; ;\
+        rm -fv nohup.out ; \
+        rm -fv ../lib/st* ; \
+	rm -fr autom4te.cache ; \
+        find ../linux -type f -name 'core*' -exec rm -fv {} \; ; \
+	find ../ -type d -name .xvpics -exec rm -frv {} \; ; \
+	echo "  cleaning examples..." ; \
+	make -f ../examples/Makefile -C ../examples clean-all > /dev/null 2>&1; \
+        echo "Ready."
+
+distclean: clean-all 
+	@rm -fv aclocal.m4 Makefile ../examples/template/Makefile Dependencies
+
+install: @LIB_DEBUG@ @LIB_RELEASE@
+	@echo "Creating directories."
+	@$(INSTALL) -d $(bindir)
+	@$(INSTALL) -d $(libdir)
+	@$(INSTALL) -d $(includedir)
+	@echo "Updating links."
+	@rm -f $(libdirlnk) $(includedirlnk)
+	@ln -s $(libdir) $(libdirlnk)
+	@ln -s $(includedir) $(includedirlnk)
+	@echo "Installing LTI-Lib include files in $(includedir)."
+	@cp $(HEADERALL) $(includedir)
+	@if test "x$(CXX_MAJOR)" == "x2" ; then \
+	  echo "  GCC 2.x detected.  Replacement for limits copied."; \
+	  cp ../linux/g++/limits $(includedir); \
+	fi
+	@chmod 644 $(includedir)/*
+	@echo "Installing libraries in $(libdir)."
+	@if test "x@LIB_DEBUG@" != "x" ; then \
+	  find ../lib -name \*d.a -exec cp {} $(libdir) \; ;\
+	fi
+	@if test "x@LIB_RELEASE" != "x" ; then \
+	  find ../lib -name \*r.a -exec cp {} $(libdir) \; ;\
+	fi
+	@chmod 644 $(libdir)/*
+	@echo "Installing configuration script in $(bindir)."
+	@$(INSTALL) lti-config $(bindir)
+
+uninstall:
+	rm -f $(libdirlnk) $(includedirlnk)
+	rm -fr $(includedir)
+	rm -fr $(libdir)
+	rm -f $(bindir)/lti-config
+
+doxydoc: 
+	@echo "Generating Doxygen documentation..."; \
+	cd .. ; \
+	cp ./doc/src/fig/*.png ./doc/src/fig/*.gif ./doc/html ; \
+	doxygen ./doc/doc.cfg ; \
+	echo "Ready."
+
+# JNI interface
+jni: ../lib/libltimathr.a ../lib/libltimathd.a ../misc/java/jniltilib
+
+../misc/java/jniltilib:
+	$(MAKE) -C ../misc/java all
+
+# complete library 
+../lib/libltid.a: $(DEBALL)
+	@echo "Linking debug version of liblti ($@)" ; \
+        ar rs ../lib/libltid.a $(DEBALL)
+
+../lib/libltir.a: $(RELALL)
+	@echo "Linking release version of liblti ($@)" ; \
+        ar rs ../lib/libltir.a $(RELALL)
+
+../lib/libltip.a: $(PFLALL)
+	@echo "Linking profile version of liblti ($@)" ; \
+        ar rs ../lib/libltip.a $(PFLALL)
+
+# only the basic mathematical matrix and vector operations
+../lib/libltimathr.a: $(RELOBJMATH)
+	@echo "Linking release version of libltimath ($@)" ; \
+        ar rs ../lib/libltimathr.a $(RELOBJMATH)
+
+# only the basic mathematical matrix and vector operations
+../lib/libltimathd.a: $(DEBOBJMATH)
+	@echo "Linking debug version of libltimath ($@)" ; \
+        ar rs ../lib/libltimathd.a $(DEBOBJMATH)
+
+# only the basic mathematical matrix and vector operations
+../lib/libltimathp.a: $(PFLOBJMATH)
+	@echo "Linking release version of libltimath ($@)" ; \
+        ar rs ../lib/libltimathr.a $(PFLOBJMATH)
+
+# the complete library without the viewer
+../lib/libltinvr.a:  $(RELOBJIPS) 
+	@echo "Linking release version of libltinv ($@)" ; \
+        ar rs ../lib/libltinvr.a $(RELOBJIPS) 
+
+# the complete library without the viewer
+../lib/libltinvd.a:  $(DEBOBJIPS) 
+	@echo "Linking debug version of libltinv ($@)" ; \
+        ar rs ../lib/libltinvd.a $(DEBOBJIPS) 
+
+# the complete library without the viewer
+../lib/libltinvp.a:  $(PFLOBJIPS) 
+	@echo "Linking debug version of libltinv ($@)" ; \
+        ar rs ../lib/libltinvd.a $(PFLOBJIPS) 
+
+# the only tester source files:
+$(DEBUGDIR)main.o: ../tester/main.cpp ../tester/ltiTester.h ../src/basics/ltiException.h
+	@echo "Compiling debug version of $<" ; \
+	$(GCCD) ../tester/main.cpp -o $(DEBUGDIR)main.o
+
+$(DEBUGDIR)ltiTester.o: $(TESTERFILE) ../tester/ltiTester.h $(HEADERALL)
+	@echo "Compiling debug version of $<" ; \
+	$(GCCD) -x c++ $(TESTERFILE) -o $(DEBUGDIR)ltiTester.o
+
+$(RELEASEDIR)main.o: ../tester/main.cpp ../tester/ltiTester.h ../src/basics/ltiException.h
+	@echo "Compiling release version of $<" ; \
+	$(GCCR) ../tester/main.cpp -o $(RELEASEDIR)main.o
+
+$(RELEASEDIR)ltiTester.o: $(TESTERFILE) ../tester/ltiTester.h $(HEADERALL) 
+	@echo "Compiling release version of $<" ; \
+	$(GCCR) -x c++ $(TESTERFILE) -o $(RELEASEDIR)ltiTester.o
+
+$(PROFILEDIR)main.o: ../tester/main.cpp ../tester/ltiTester.h ../src/basics/ltiException.h
+	@echo "Compiling profile version of $<" ; \
+	$(GCCP) ../tester/main.cpp -o $(PROFILEDIR)main.o
+
+$(PROFILEDIR)ltiTester.o: $(TESTERFILE) ../tester/ltiTester.h $(HEADERALL)
+	@echo "Compiling profile version of $<" ; \
+	$(GCCP) -x c++ $(TESTERFILE) -o $(PROFILEDIR)ltiTester.o
+
+# pack/unpack targets
+bz2dist: bigdist
+	bzip2 -f ../bigltilib.tar
+
+bigdist:
+	cd .. ; rm ./bin/tester ./bin/rtester ./bin/dtester ./bin/ptester; \
+	echo -e '*.o\n*.a\n*.lib\n*.class\n*.log\n*.dat\n*.so\n*.ps' >/tmp/make.$$$$ ; \
+        echo -e 'config.mk\nCVS\n*.tar\n*.tbz\n*.tar.bz2\n*.tar.gz\n*~\n*#*' >> /tmp/make.$$$$ ; \
+	for i in `find . -perm +100 -type f -not -name \*.so` ; do \
+          if file $$i | fgrep -q ELF ; then echo $$i ; fi ; \
+        done >> /tmp/make.$$$$ ; \
+        tar cvf ./bigltilib.tar --exclude-from /tmp/make.$$$$ . ; rm /tmp/make.$$$$
+
+
+update:
+	cd .. ; rm ./bin/tester ./bin/rtester ./bin/dtester ; \
+	echo -e './ltilib/doc/*\n*.o\n*.a\n*.lib\n*.class\n*.log\n*.so\n*.png\n*.ps\n*.clf\n*.html\n*.gif' >/tmp/make.$$$$ ; \
+        echo -e 'config.mk\nCVS\n*.tar\n*.tbz\n*.tar.bz2\n*.tar.gz\n*~\n*#*\n*,v' >> /tmp/make.$$$$ ; \
+	for i in `find . -perm +100 -type f -not -name \*.so` ; do \
+          if file $$i | fgrep -q ELF ; then echo $$i ; fi ; \
+        done >> /tmp/make.$$$$ ; \
+        if [ -f ./.artime ]; then \
+          tar cjvf ./bigltilibupdate.tar.bz2 --exclude-from /tmp/make.$$$$ --newer-mtime "`date -r .artime`" . ; rm /tmp/make.$$$$ ; \
+        else \
+          tar cjvf ./bigltilibupdate.tar.bz2 --exclude-from /tmp/make.$$$$ --newer-mtime "$(ARTIME)" . ; rm /tmp/make.$$$$ ; \
+        fi
+
+showconf: debugmk
+
+debugmk:
+	@echo "LTIBASE = $(LTIBASE)" ; \
+	echo "VPATH = $(VPATH)" ; \
+	echo "CPUARCH = $(CPUARCH)" ; \
+	echo "LAPACKLIB = $(LAPACKLIB)" ; \
+	echo "CXXINCLUDE = $(CXXINCLUDE)" ; \
+	echo "LNALLD = $(LNALLD)" ; \
+	echo "LNALLR = $(LNALLR)" ; \
+	echo "LNALLP = $(LNALLP)" ; \
+	echo "Compiler: $(CXX) (Major version $(CXX_MAJOR))" ; \
+	echo "GCCD = $(GCCD)" ; \
+	echo "GCCR = $(GCCR)" ; \
+	echo "GCCP = $(GCCD)" ; \
+	echo "EXTRAMK = $(EXTRAMK)"
+
+# auto-tools
+aclocal.m4: configure.in acinclude.m4
+	aclocal
+
+config.h.in: configure.in aclocal.m4
+	autoheader
+
+configure: configure.in aclocal.m4
+	autoconf
+
+# check if Dependencies file exists, and in that case, include it
+DEPFILE:=$(shell if [ -f Dependencies ] ; then echo "yes" ; else echo "no" ; fi)
+ifeq "$(DEPFILE)" "yes"
+  include Dependencies
+endif

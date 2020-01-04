@@ -1,0 +1,31 @@
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ltilib", "ltilib.vcproj", "{F104AD4E-027C-4235-B106-251B04FB8088}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		LTI-Lib .NET Debug|Win32 = LTI-Lib .NET Debug|Win32
+		LTI-Lib .NET Release|Win32 = LTI-Lib .NET Release|Win32
+		MFC Shared Debug|Win32 = MFC Shared Debug|Win32
+		MFC Shared Release|Win32 = MFC Shared Release|Win32
+		WIN32 Debug|Win32 = WIN32 Debug|Win32
+		WIN32 Release|Win32 = WIN32 Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F104AD4E-027C-4235-B106-251B04FB8088}.LTI-Lib .NET Debug|Win32.ActiveCfg = LTI-Lib .NET Debug|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.LTI-Lib .NET Debug|Win32.Build.0 = LTI-Lib .NET Debug|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.LTI-Lib .NET Release|Win32.ActiveCfg = LTI-Lib .NET Release|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.LTI-Lib .NET Release|Win32.Build.0 = LTI-Lib .NET Release|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.MFC Shared Debug|Win32.ActiveCfg = MFC Shared Debug|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.MFC Shared Debug|Win32.Build.0 = MFC Shared Debug|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.MFC Shared Release|Win32.ActiveCfg = MFC Shared Release|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.MFC Shared Release|Win32.Build.0 = MFC Shared Release|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.WIN32 Debug|Win32.ActiveCfg = WIN32 Debug|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.WIN32 Debug|Win32.Build.0 = WIN32 Debug|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.WIN32 Release|Win32.ActiveCfg = WIN32 Release|Win32
+		{F104AD4E-027C-4235-B106-251B04FB8088}.WIN32 Release|Win32.Build.0 = WIN32 Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

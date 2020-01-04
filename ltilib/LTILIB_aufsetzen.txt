@@ -1,0 +1,16 @@
+In c:\ltilib\win\buildlibnet 
+--> buildlib.net.bat wie angegeben bearbeiten
+--> Buildlib.net.pl starten und vcproj-Datei erzeugen lassen
+
+vcproj in VS8 starten (mit konvertierung) und komplette Projektmappe builden.
+
+Fehler entsprechend der Compiler-Ratschläge bearbeiten.
+
+Fehlerberichtigung von Carsten Fries in LoadImageList.c übernehmen.
+
+
+Einstellungen für Projekte
+------------------------
+Multithreades Debug Dll
+ltilib7_d.lib
+

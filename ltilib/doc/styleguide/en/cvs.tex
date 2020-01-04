@@ -1,0 +1,72 @@
+\chapter{Download}
+\label{chap:download}
+
+You can get a tar ball of the \ltilib\ latest version from 
+
+\url{http://ltilib.sourceforge.net/doc/html/index.html}
+
+\section{Linux}
+
+From the shell and using GNU tar you can decompress the file with
+{\small
+\begin{alltt}
+tar xzvf ltilib.tar.gz
+\end{alltt}
+}
+
+or
+
+{\small
+\begin{alltt}
+tar xjvf ltilib.tar.gz
+\end{alltt}
+}
+
+After that you will need to build the library:
+
+{\small
+\begin{alltt}
+cd ltilib/linux
+./configure
+make
+\end{alltt}
+}
+
+and as \code{root} or a user with write privileges on the prefix given to the
+configure (usually \code{/usr/local}) you need to install the library just a
+
+{\small
+\begin{alltt}
+make install
+\end{alltt}
+}
+
+\section{Windows}
+
+In \code{ltilib/win/tester} there is an example project that uses all \ltilib\
+files directly.  You can make some experiments with this project.
+
+You can of course build the library.  For this you will need a Perl-Script
+interpreter installed.  In \code{ltilib/win/buildLib} execute the file
+\code{buildLib.bat}.  This will create the libraries in the directory
+\code{ltilib/lib}.  Additionally all header-files will be collected and placed
+in \code{ltilib/lib/headerFiles}.
+
+More information creating your own projects using the \ltilib\ can be found in
+the on-line documentation.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "DevelopersGuide"
+%%% End: 
+
+
+
+
+
+
+
+
+
+

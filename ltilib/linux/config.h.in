@@ -1,0 +1,163 @@
+/* config.h.in.  Generated from configure.in by autoheader.  */
+
+/* Define to dummy `main' function (if any) required to link to the Fortran
+   libraries. */
+#undef F77_DUMMY_MAIN
+
+/* Define to a macro mangling the given C identifier (in lower and upper
+   case), which must not contain underscores, for linking with Fortran. */
+#undef F77_FUNC
+
+/* As F77_FUNC, but for C identifiers containing underscores. */
+#undef F77_FUNC_
+
+/* Define if F77 and FC dummy `main' functions are identical. */
+#undef FC_DUMMY_MAIN_EQ_F77
+
+/* define if processor has AMD 3DNow */
+#undef HAVE_3DNOW
+
+/* define if processor has Altivec */
+#undef HAVE_ALTIVEC
+
+/* Define if you have a BLAS library. */
+#undef HAVE_BLAS
+
+/* Define to 1 if you have the `finite' function. */
+#undef HAVE_FINITE
+
+/* defines if gtk libraries were found */
+#undef HAVE_GTK
+
+/* define if std::ifstrean has constructor taking a file descriptor */
+#undef HAVE_IFSTREAM_FD_CTOR
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `isinf' function. */
+#undef HAVE_ISINF
+
+/* Define to 1 if you have the `isnan' function. */
+#undef HAVE_ISNAN
+
+/* Define if you have LAPACK library. */
+#undef HAVE_LAPACK
+
+/* Define to 1 if you have the `jpeg' library (-ljpeg). */
+#undef HAVE_LIBJPEG
+
+/* Define to 1 if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define to 1 if you have the `png' library (-lpng). */
+#undef HAVE_LIBPNG
+
+/* Define to 1 if you have the `pthread' library (-lpthread). */
+#undef HAVE_LIBPTHREAD
+
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
+
+/* defines if the local implementation for png loader/savers was found */
+#undef HAVE_LOCALJPEG
+
+/* defines if the local implementation for png loader/savers was found */
+#undef HAVE_LOCALPNG
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* define if the processor has intel mmx */
+#undef HAVE_MMX
+
+/* define if the compiler implements namespaces */
+#undef HAVE_NAMESPACES
+
+/* define if the unix/linux system has a /proc directory structure */
+#undef HAVE_PROC
+
+/* define if processor has intel SSE */
+#undef HAVE_SSE
+
+/* define if processor has intel SSE2 */
+#undef HAVE_SSE2
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* define if the std::streambuf has member fd() */
+#undef HAVE_STREAMBUF_FD
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* defines if the susan algorithms are present in the library */
+#undef HAVE_SUSAN
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `_finite' function. */
+#undef HAVE__FINITE
+
+/* Define to 1 if you have the `_isinf' function. */
+#undef HAVE__ISINF
+
+/* Define to 1 if you have the `_isnan' function. */
+#undef HAVE__ISNAN
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* define processor type */
+#undef PROCESSOR
+
+/* define processor vendor */
+#undef PROCESSOR_VENDOR
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* Define to 1 if the X Window System is missing or not being used. */
+#undef X_DISPLAY_MISSING
+
+/* define type for byte */
+#undef _LTI_BYTE
+
+/* define type for two-bytes */
+#undef _LTI_WORD16
+
+/* define type for four-bytes */
+#undef _LTI_WORD32
+
+/* define type for eight-bytes */
+#undef _LTI_WORD64

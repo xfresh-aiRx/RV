@@ -1,0 +1,76 @@
+Shape Recognition Example
+-------------------------
+
+This example is more a programing example than a "power" example.  It shows a
+very simple recognition experiment, in which the shape of regions in a binary
+image have to be recognized.  The goals are mainly to show
+
+1. How to use the fastRelabeing functor to extract area points.
+2. How to use the geometricFeatures functor to extract some geometric 
+   descriptors.
+3. How to classify the geometricFeatures and generate simple statistics.
+
+A typical recognition experiment serializes the extracted descriptors from a
+training set, so that the "feature extraction" occurs only once.
+The training process uses the serialized features.  The recognition experiment
+needs the trained classifiers (lti::rbf in this example).
+
+Note that the shapes in the directory "train" can be recognized with much less
+effort, but the idea is that you can substitute or add more complex shapes in
+the training set without major changes.
+
+The code is somehow long, because of many "directory and files management"
+issues.  Maybe the LTI-Lib will be extended in the future to handle this kind
+of problems.  Since this directory management is OS dependent, the current
+example works only in Linux and maybe other Unix'es.  Maybe you want to
+"translate" the whole directory management stuff to MS Visual C++?
+
+Several options can be configured in the file "config.dat".
+
+Creating a training set
+-----------------------
+
+You need to create a sufficient large train set for better results.  For this
+task you also need the LTI-Lib example "distort".  In Linux you can just run
+the script "createTrain" to generate a larger set of images in the directory
+"train".
+
+Compiling
+---------
+
+Compile the LTI-Lib and then call "make" in this directory
+
+Descriptor extraction
+---------------------
+
+shapeRecognition -e
+
+It will be assumed that there is a directory "train" containing subdirectories
+for each object that has to be recognized.  The descriptors will be left in a 
+directory called "data".
+
+Training
+--------
+
+shapeRecognition -t
+
+It will be assumed that the descriptors already lie in the directory "data".
+The classifiers will be left in "data" too.
+
+Recognizing shapes
+------------------
+
+shapeRecognition filename
+
+If the classifier is found, the shapes found in the given images will be
+identified and labeled.  You can use the file "test/test.png" to try out this
+option.  Only regions with colors different to the first entry in the palette
+(see the file config.dat, default value "lti::Black") will be considered.
+
+shapeRecognition -s
+
+It will be assumed that the directory structure in "test" is identical to the
+one of "train".  Using this information all images in test will be classified
+assuming that only one shape is present in each image.  The statistics will be
+left in the directory "data".  You can read the statistics in the file
+"rates.txt".

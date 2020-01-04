@@ -1,0 +1,37 @@
+(path "")
+(trainPath "train/")
+(testPath "test/")
+(dataPath "data/")
+(classIdFile "classId.txt")
+
+;; Geometric Descriptor
+(geoParam ((calcFeatureGroup1 #f)
+  (calcFeatureGroup2 #t)
+  (calcFeatureGroup3 #f)
+  (calcFeatureGroup4 #f)
+  (boundaryDefinition "CentralBoundary")))
+(indices ((size 2)
+  (data (26 25))))
+
+;; RBF Network
+(rbfParam ((doTrain2 #f)
+  (nbPresentations1 0)
+  (nbPresentations2 50)
+  (nbHiddenNeurons 3)
+  (learnRate1 0.3)
+  (learnRate2 0.1)
+  (learnFactor 0.3)
+  (windowSize 0.2)
+  (sigma 0)
+  (sigmaFactor 1.6)
+  (lambda 0)
+  (high 0.99)
+  (norm "L2distance")
+  (lvqInitType "LvqMaxDist")
+  (lvqType1 "OLVQ1")
+  (lvqType2 "OLVQ3")
+  (multipleMode "ObjProb")))
+
+;; Result Palette
+(palette ((size 8)
+  (data ((0 0 0 0)     (192 192 192 0)     (255 0 0 0)     (0 255 0 0)     (0 0 255 0)     (0 255 255 0)     (255 255 0 0)     (255 0 255 0)))))

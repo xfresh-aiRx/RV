@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if make -C ../distort/ ; then
+  ../distort/distort +d 30 -t 20 -f train/train.txt
+else
+  echo "Error generating distort example"
+fi

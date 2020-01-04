@@ -1,0 +1,28 @@
+Directory ltilib/win
+
+This directory contains several projects to build the LTI-Lib or
+applications that use it.  The subdirectories contain following
+projects.
+
+- batchFiles    Empty directory, where other projects might store
+                temporary batch files.
+- buildLib      Project consisting of a batch file and some PERL
+                scripts.  Just run the buildLib.bat file to compile
+                the LTI-Lib.  The results will be left in the
+                ltilib/lib directory and all object files will be
+                left in the ltilib/obj directory.
+- console_src   Contains a PERL script that builds MS Visual C++
+                project files console_src.dsp and console_src.dsw.
+                This project compiles each LTI-Lib source file and
+                link it with the console_src.cpp file.  No library
+                is build.  You can use it to debug LTI-Lib classes.
+- console_lib   Contains a PERL script that builds MS Visual C++
+                project files console_lib.dsp and console_lib.dsww.
+                This project compiles the console_lib.cpp file and
+                links it to a previously compiled library.  The
+                buildLib.bat file in buildLib directory must be 
+                executed previously.
+- tester        Very similar to the console_src project, but ready
+                to link it with the main.cpp and ltiTester.cpp files
+                in ltilib/tester.
+

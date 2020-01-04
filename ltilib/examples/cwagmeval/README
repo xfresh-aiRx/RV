@@ -1,0 +1,91 @@
+Example for evaluation of image segmentation with the CWAGM functor.
+
+The CWAGM (Color Watershed - Adjacency Graph Merge) segmentation concept is a
+hybrid image-based segmentation approach that first over-partitions an image
+using the watershed transform and then merges the obtained regions in a
+sequential optimization form that tries to minimize the mean square error of a
+piece-wise constant image approximation.
+
+The method has been proposed in:
+
+Pablo Alvarado.  "Segmentation of Color Images for interactive 3D object
+                  retrieval".  Dissertation, RWTH-Aachen, 2004
+
+This example allows you to optimize the parameters of that algorithm by means
+of an evolutionary evaluation mechanism based on the PESA algorithm.
+
+You will need a text file with the names of a set of reference images, for
+which it also exist a set of reference segmentation masks.  The evaluation
+will then try to find the parameterizations that optimize some aspects, like
+pixel-wise accuracy, throughput, number of regions, etc. with respect to the
+reference data.
+
+The original images can be in png or bmp format.  Jpeg images can also be
+read, but don't expect very good results with jpeg images, since the
+quantization effects will be noticeable in the results.
+
+The mask can also be read from png or bmp files, which have been stored as
+"indexed" images with 256 colors.  The names of the files for the reference
+masks are expected to be the same as the original images, but with a postfix
+indicated in the parameters (usually "_mask").  So, if you image is called
+"test.png", the reference image will be expected in "test_mask.png".
+
+In the directory 'data' of the current example you can find one image and its
+corresponding reference segmentation.
+
+HOW TO BUILD
+
+1. Build the ltilib
+
+2. If there is no "Makefile" in this directory, copy it from
+   ../template/Makefile.
+
+3. Execute the script 'makelinks', in case the files ltiParetoFront* and
+   ltiSegmentationEvaluation* are not present.
+
+4. make
+
+
+EXAMPLE
+
+Execute 
+
+> cwagmeval --help 
+
+for several options.  The program creates the first time a default
+configuration file that can be used to tune the example to your needs
+(config_cwagmeval.dat).  You can replicate the contents of that file several
+times, and the optimization will be executed for each one of them.  This
+allows you to evaluate different aspects of the algorithms "over-night" in a
+batch process.
+
+You can then try
+
+> cwagmeval -f
+
+to generate a parameterizations front, or
+
+> cwagmeval -l0 -f
+
+if you don't want too much information.
+
+
+OUTPUT
+
+The example generates several files, whose default names are (of course you can
+change them in your configuration file):
+
+pareto.log:    This can hardly be read, as it is the complete output of the
+               evolutionary process.  The parameters are encoded in binary
+               chains.  You can only check for the fitness values encoded in
+               the vector item of each entry.  
+
+pareto.log.pf: The pareto front.  It contains only those elements in
+               pareto.log that are also in the front (the best ones) and
+               instead of the binary encoding, the complete "human readable"
+               lti::lispStreamHandler output for each configuration can be
+               found.
+
+pareto.log.png: An image depicting the front.  Much better representations can
+                be obtained using the previous files with the example "pareto".
+        

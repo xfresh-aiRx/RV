@@ -1,0 +1,4 @@
+train/triangle/triangle.png
+train/square/square.png
+train/rectangle/rectangle.png
+train/circle/circle.png

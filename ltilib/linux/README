@@ -1,0 +1,121 @@
+****************************************************************************
+*                                                                          *
+* LTI-Lib, Computer Vision Library                                         *
+* README File for Linux Users                                              *
+*                                                                          *
+****************************************************************************
+
+1. How to compile
+
+   To create the configure script you need to do the following:
+
+      make -f Makefile.cvs
+
+   After that, you can create your Makefile with
+
+      ./configure
+
+   To compile the library you will need
+
+      make
+
+   and to install it at the configured place, you'll need
+
+      make install
+
+
+2. Files found here
+
+   This directory contains following files:
+
+   README        : this file
+
+   workbench/    : all files here will be compiled and linked to the
+                   test program (make tester and make rtester).
+
+   g++           : some standard files required by gcc 2.95.x
+
+   aclocal.m4    : macros for autoconf
+   acinclude.m4  : macros for autoconf
+
+   Makefile.in   : the template for the Makefile
+
+   mkinstalldirs : file required by autoconf
+   install-sh    : file required by autoconf
+
+   lti-config.in : template file for lti-config, which is required
+	           to simplify the use of the lti-lib.
+   lti-local-config.in : template file for lti-local-config, which is
+                         used to compile the examples.
+ 
+
+3. Files created here
+
+   After calling  configure, you will also find here
+
+   Makefile      : necessary to create the libraries and test programs.
+                   Useful targets are:
+                     clean:   remove all object files
+                     dtester: create a tester program (in ../bin/dtester)
+                              with all debug information
+                     rtester: create a tester program (in ../bin/rtester)
+                              with speed optimizations and without debug
+                              information.
+                     ptester: similar to tester, but including
+                              profiling information.
+                     doxydoc: create the sources documentation with doxygen
+                              results in ../doc/html, ../doc/latex and so on.
+
+   Dependencies : file required in the Makefile, which contains the
+                  dependencies of all components in the LTI-Lib.
+                  To create it use "make dep".
+                  If there is some error in the dependencies, delete
+                  the file, and create a new empty one (for example
+                  with "touch Dependencies".  After that use
+                  "make dep"
+
+4. Using external libraries
+
+   For the use of many frame-grabbers and other hardware related classes, it
+   is usually required that some special hardware drivers or hardware related
+   libraries can be linked with the LTI-Lib.  For these and many other
+   special cases it is desirable to have a simple way to indicate:
+
+     a. Additional include paths, where special header files can be found
+     b. Additional library paths, where specific libraries can be found
+     c. Additional libraries, that should be linked with the LTI-Lib in order
+        to provide specific functionality.
+
+   Include paths are required by almost any frame-grabber or camera utility,
+   except if you provide that all headers can be found in the standard system
+   include paths.
+
+   Library paths are only necessary if you also specify some libraries to be
+   linked with, which are not located in the standard library directories
+   (e.g. /usr/lib or /usr/local/lib).
+
+   The mechanism provided by the LTI-Lib should "survive" a ./configure, since
+   otherwise you would need to make some changes, each time you get a newer
+   library version or you just want to reconfigure some options.
+
+   You just need to create a file called "extrapaths.mk", in which following
+   variables are expected:
+
+     EXTRACXXFLAGS    for additional compilation flags
+     EXTRAINCLUDEPATH for additional include paths
+     EXTRALIBPATH     for additional library paths
+     EXTRALIBS        for additional libraries
+
+   For example, to use the lti::microEnablePulnix frame-grabber/camera
+   functor, you should include in "extrapaths.mk" following three lines
+     EXTRAINCLUDEPATH = -I/usr/src/menable/include
+     EXTRALIBPATH = -L/usr/src/menable/lib
+     EXTRALIBS =  -lpulnixchanneltmc6700 -lmenable
+      
+   Please note the standard GCC flags used to indicate:
+     -I path to headers
+     -L path to libraries
+     -l libraries.
+
+
+

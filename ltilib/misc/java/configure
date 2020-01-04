@@ -1,0 +1,220 @@
+#!/bin/bash
+
+currdir=`pwd`
+source ~/.bashrc
+cd $currdir
+
+cnffile="config.mk"
+inifile="config.in"
+configfiles=`find . -name Makefile -print | sed "s/Makefile/$cnffile/"`
+#echo $configfiles
+
+libdir="`pwd`/lib"
+if echo "$LD_LIBRARY_PATH" | fgrep -q $libdir ; then
+  echo "$libdir is already in your loader path."
+else
+  # modify bashrc
+  echo "export LD_LIBRARY_PATH=\"\$LD_LIBRARY_PATH:$libdir\"" >>$HOME/.bashrc
+fi
+
+# find out about machine
+if [ "$OSTYPE" = "cygwin32" ]; then
+  os="win"
+  inifile="config-cygwin32.in"
+else
+  os="unix"
+  inifile="config.in"
+fi
+
+function simplifyFilenames {
+  perl -e '$_=<>; while (s!/\w+/\.\./!/!g > 0) {} print;'
+}
+
+# Replicate the master config file. Copy it to all locations 
+# where we have a Makefile
+function replicate {
+  for i in $configfiles ; do
+    if [ -f $i -a "$i" != "./$cnffile" ]; then
+      echo "backing up old file in $i~"
+      mv $i $i~
+    fi
+    if [ "$i" != "./$cnffile" ]; then
+      echo "creating config file $i"
+      cp $cnffile $i
+    fi
+  done
+}
+
+
+function parseMaster {
+  cat <<EOF
+I will now analyze LTI-Lib's master make file and copy the relevant
+definitions.
+EOF
+   
+  egrep -A 5 "^LAPACK_LIBS = " ../../linux/Makefile >>$cnffile
+  #egrep -A 3 -B 1 "^ *CPUARCH = " ../../linux/Makefile >>$cnffile
+}  
+
+
+function initConfig {
+
+  cat <<INTRO
+
+This script will try to figure out where certain things are located.
+It will then create a couple of files in all sub-directories which contain
+a Makefile.
+INTRO
+
+  echo "# This is an automatically generated file." > $cnffile
+  echo "# It contains system-specific variable definitions." >> $cnffile
+  echo >>$cnffile
+}
+
+
+function findJavaRoot {
+  # Now, find the root of the Java source tree
+  javasrc=`find $PWD/.. -name techinfo -print | fgrep rwth_aachen | fgrep de | fgrep sources | sed -e "s%\(/sources\).*$%\1%" | simplifyFilenames`
+#  javacls=`find $PWD -name techinfo -print | fgrep rwth_aachen | fgrep de | fgrep classes | sed -e "s%\(/classes\).*$%\1%"`
+  #echo "-- $javasrc --"
+  javacls="`dirname $javasrc`/classes"
+
+  if [ "$os" = "win" ]; then
+    # make standard windows path names
+    javasrc=`echo "$javasrc" | sed 's!^//\([a-zA-Z]\)!\1:!'`
+    javacls=`echo "$javacls" | sed 's!^//\([a-zA-Z]\)!\1:!'`
+  fi
+  cat <<EOF
+
+I would guess that your Java sources are rooted in 
+    $javasrc
+If this is correct, just press enter at the next prompt.
+Otherwise, please enter the correct directory name.
+EOF
+
+  read -p "Java sources root directory [$javasrc]: "
+  if [ -n "$REPLY" ]; then
+    javasrc="$REPLY"
+  fi
+  echo "Ok, configuring for Java sources at $javasrc."
+  echo "# LTIlib base directory" >> $cnffile
+  ltibase=`echo "$javasrc/../../../" | simplifyFilenames | sed 's%/$%%;'`
+  echo "LTIBASE = $ltibase" >> $cnffile
+  echo "# Java source file root for this project" >> $cnffile
+  echo "LTISRC=$javasrc" >> $cnffile
+
+  cat <<EOF
+I would guess that your Java classes are rooted in 
+    $javacls 
+If this is correct, just press enter at the next prompt.
+Otherwise, please enter the correct directory name.
+EOF
+
+  read -p "Java classes root directory [$javacls]: "
+  if [ -n "$REPLY" ]; then
+    javacls="$REPLY"
+  fi
+  if [ ! -d $javacls ]; then 
+    mkdir $javacls
+  fi
+  echo "Ok, configuring for Java sources at $javasrc."
+  echo "# Java class path root for this project" >>$cnffile
+  echo "LTICLS=$javacls" >> $cnffile
+  echo "LTIJNI=$PWD/jni" >> $cnffile
+}
+
+function defineShortcuts {
+  echo -e "\n# BEGIN $inifile" >>$cnffile
+  cat <$inifile >>$cnffile
+  echo -e "# END $inifile\n" >>$cnffile
+}
+
+
+function findJniHeaders {
+  jdkroot=""
+  # Now find the location of the JNI include files
+  cat <<EOF
+
+Now I will try to find out the location of the JNI include files. 
+Usually the JDK is located in /usr/local/java or /opt/java, so this is
+where I am looking first.
+EOF
+
+  for i in /usr/local/java /opt/java /usr/local/jdk1.2 /opt/jdk1.2 \
+           /usr/local/jdk1.2.2 /opt/jdk1.2.2 ; do 
+    if [ -d $i ]; then
+      jdkroot="$jdkroot $i"
+    fi
+  done
+
+  echo "Candidates for the JNI includes are: $jdkroot"
+
+  for i in $jdkroot ; do
+    if [ -f $i/include/jni.h ]; then
+      jdkroot=$i
+      echo "Found them in $i/include"
+      break
+    fi
+  done
+
+  echo "# define include path for JNI" >>$cnffile
+  echo "JNIINCLUDE=-I$jdkroot/include -I$jdkroot/include/linux" >>$cnffile
+}
+
+function findLtiLib {
+  libname=$1
+  # Now find the location of the LTI library
+  cat <<EOF
+
+Now I am going to look for the location of the library $libname. I need this
+directory so that I can include it to your library loader path.
+EOF
+
+  # do it in a subshell
+  ltilibname=`find $HOME -name $libname -type f -print`
+  if [ -n "$ltilibname" ]; then
+    ltilibname=`echo $ltilibname | awk ' { print $1; }'`
+    cat <<EOF
+The complete path name of the library seems to be 
+    $ltilibname
+If this is correct, just press enter at the next prompt.
+Otherwise, please enter the correct directory name.
+EOF
+
+    read -p "Path and name of library [$ltilibname]: "
+    if [ -n "$REPLY" ]; then
+      ltilibname="$REPLY"
+    fi
+    ltilibdir=`dirname $ltilibname`
+    if [ ! -e $libdir/$libname ]; then
+      ln -s $ltilibname $libdir/$libname
+    fi
+  else
+    echo "Cannot find library $libname."
+  fi
+}
+
+if [ -f "$cnffile" ]; then
+  echo "Found old configuration master file."
+else
+  echo "Creating new configuration master file."
+  initConfig
+  findJavaRoot
+  findJniHeaders
+  parseMaster
+  #findLtiLib liblti.so
+  #findLtiLib apfloat.a
+  defineShortcuts
+fi
+#echo $cnffile
+#cat $cnffile
+echo "Replicating master file."
+replicate
+
+
+
+
+
+
+
+

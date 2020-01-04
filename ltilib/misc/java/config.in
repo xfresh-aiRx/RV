@@ -1,0 +1,38 @@
+
+# This is a file which contains several useful definitions for the
+# ltilib JNI makefiles. It is read by configure and merged with the
+# system-dependent part which is created by configure.
+
+# increase memory limit for javac
+JAVAOPT=-J-Xmx64m -g -deprecation
+
+# Define shortcuts for compiler calls
+JAVAC=javac -classpath $(LTICLS) -d $(LTICLS) -sourcepath $(LTISRC) $(JAVAOPT)
+JAVAH=javah -classpath $(LTICLS) -o
+# define some shortcuts
+LTISRCFILES = $(wildcard ./*.java)
+LTICLSDIR = $(PWD:$(LTISRC)%=$(LTICLS)%)
+LTICLSFILES = $(LTISRCFILES:./%.java=$(LTICLSDIR)/%.class)
+# prevent a default target
+default:
+	@echo "This makefile does not have a default target." ; \
+        echo "Possible targets are: all cd subdirs <classfile>" ; exit 2
+# target for descending into subdirectories
+subdirs:
+	@if [ -n "$(SUBDIRS)" ]; then for i in _ $(SUBDIRS) ; do \
+          if [ -f $$i/Makefile ]; then \
+            cd $$i && $(MAKE) $(MAKECMDGOALS) ; cd .. ;\
+          fi ; \
+        done ; fi
+# target for making class files from java files
+$(LTICLSFILES): $(LTICLSDIR)/%.class: ./%.java
+	$(JAVAC) $<
+# target for debugging the makefile
+debugmk:
+	@echo LTISRCFILES = $(LTISRCFILES) ; \
+        echo LTICLSFILES = $(LTICLSFILES) ; \
+        echo LTICLSDIR = $(LTICLSDIR) ; \
+        echo LTISRC = $(LTISRC) ; \
+        echo LTICLS = $(LTICLS) ; \
+	echo PWD = $(PWD) ; \
+	echo CURDIR = $(PWD)

@@ -1,0 +1,9 @@
+If you create a new example, just copy the Makefile in this directory
+into the new example directory.
+
+If there is no Makefile here, it still needs to be created by calling
+"./configure" in the ltilib/linux directory.
+
+You can use the Makefile for your own proyects, if you replace the
+LTICMD from lti-local-config to lti-config.  This will work only if
+you already installed the library (see ltilib/linux/README)
